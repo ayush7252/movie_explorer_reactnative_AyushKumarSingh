@@ -6,8 +6,9 @@ import {
   View,
   ImageBackground,
   Image,
+  Alert,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   width,
   height,
@@ -15,40 +16,66 @@ import {
   verticalScale,
   moderateScale,
 } from '../Constants/Dimensions';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const isTablet = width >= 568;
 
 const Card = ({item}) => {
   const [selected, setselected] = useState(false);
+  const [isGuest, setisGuest] = useState(false);
+
+  useEffect(() => {
+    const Guest = async () => {
+      const role = await AsyncStorage.getItem('userRole');
+      if (role === 'user' || role === 'supervisor') {
+        setisGuest(true);
+      }
+    };
+    Guest();
+  }, []);
+
+  const isModalOpen = () => {
+    if (isGuest) {
+      setselected(!selected);
+    } else {
+      Alert.alert('To access this feature , You need to login to the app.');
+    }
+  };
   return (
-    <View>
+    <View testID='ModalContainer'>
       <View style={styles.card}>
         <ImageBackground
-          source={{uri: item.image}}
+          testID="poster"
+          source={{uri: item.poster_url}}
           style={styles.poster}
           resizeMode="cover">
           <View style={styles.cardContent}>
-            <Text style={styles.title}>
-              {item.name}{' '}
+            <Text testID="title" style={styles.title}>
+              {item.title}{' '}
               <Text
+                testID="release_year"
                 style={[
                   styles.subTitle,
                   {fontWeight: '400', fontSize: verticalScale(10)},
                 ]}>
-                ( {item.year} )
+                ( {item.release_year} )
               </Text>
             </Text>
-            <Text style={styles.subTitle}>{item.type}</Text>
+            <Text testID="genre" style={styles.subTitle}>
+              {item.genre}
+            </Text>
           </View>
           <TouchableOpacity
+            testID="details_button"
             style={styles.details}
-            onPress={() => setselected(!selected)}>
+            onPress={() => isModalOpen()}>
             <Text>Details</Text>
           </TouchableOpacity>
         </ImageBackground>
       </View>
 
       <Modal
+        testID="ModalContainer"
         animationType="slide"
         transparent={true}
         visible={selected}
@@ -57,8 +84,11 @@ const Card = ({item}) => {
         }}>
         <View style={styles.ModalScreen}>
           <View style={styles.ModalContainer}>
-            <Text style={styles.ModalTitle}>Movie Details</Text>
+            <Text testID="modal_title" style={styles.ModalTitle}>
+              Movie Details
+            </Text>
             <TouchableOpacity
+              testID="modal_close_button"
               onPress={() => setselected(!selected)}
               style={styles.CrossBtn}>
               <Image
@@ -68,11 +98,11 @@ const Card = ({item}) => {
             </TouchableOpacity>
             <View>
               <View style={styles.ModalDataTop}>
-                <Image source={{uri: item.image}} style={styles.poster} />
+                <Image source={{uri: item.poster_url}} style={styles.poster} />
               </View>
               <View style={styles.ModalDataCenter}>
                 <Text style={[styles.title, {color: '#000'}]}>
-                  {item.name}{' '}
+                  {item.title}{' '}
                   <Text
                     style={[
                       styles.subTitle,
@@ -82,7 +112,7 @@ const Card = ({item}) => {
                         color: '#000',
                       },
                     ]}>
-                    ( {item.year} )
+                    ( {item.release_year} )
                   </Text>
                 </Text>
                 <Text
@@ -95,7 +125,7 @@ const Card = ({item}) => {
                       lineHeight: 20,
                     },
                   ]}>
-                  {item.type}
+                  {item.genre}
                 </Text>
                 <View style={styles.RatingSection}>
                   <Image
@@ -119,7 +149,14 @@ const Card = ({item}) => {
                       marginTop: verticalScale(10),
                     },
                   ]}>
-                  {item.views} views
+                  Duration :-{' '}
+                  <Text
+                    style={[
+                      styles.subTitle,
+                      {color: '#000', fontWeight: '400'},
+                    ]}>
+                    {item.duration} hrs.
+                  </Text>
                 </Text>
                 <Text
                   style={[
@@ -130,13 +167,31 @@ const Card = ({item}) => {
                       marginTop: verticalScale(10),
                     },
                   ]}>
-                  Actor :-{' '}
+                  Streaming Platform :-{' '}
                   <Text
                     style={[
                       styles.subTitle,
                       {color: '#000', fontWeight: '400'},
                     ]}>
-                    {item.actor}
+                    {item.streaming_platform}
+                  </Text>
+                </Text>
+                <Text
+                  style={[
+                    styles.subTitle,
+                    {
+                      color: '#000',
+                      fontWeight: 'bold',
+                      marginTop: verticalScale(10),
+                    },
+                  ]}>
+                  Director :-{' '}
+                  <Text
+                    style={[
+                      styles.subTitle,
+                      {color: '#000', fontWeight: '400'},
+                    ]}>
+                    {item.director}
                   </Text>
                 </Text>
                 <Text
@@ -151,6 +206,7 @@ const Card = ({item}) => {
                   Description :-
                 </Text>
                 <Text
+                  testID="modal_description"
                   style={[
                     styles.subTitle,
                     {

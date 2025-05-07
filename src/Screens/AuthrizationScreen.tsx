@@ -15,28 +15,29 @@ const AuthrizationScreen = ({navigation}) => {
   const [error, setError] = useState('');
 
   const handleLogin = async() =>{
-    navigation.navigate('Footer')
-    // try {
-    //   const data = {
-    //     user: {
-    //       email,
-    //       password,
-    //     }
-    //   }
-    //   const res = await LoginRequest(data);
-    //   const { id, role: userRole, email: userEmail } = res.data;
-    //   if(id >= 0){
-    //     await AsyncStorage.setItem('userEmail', userEmail);
-    //     await AsyncStorage.setItem('userRole', userRole);
-    //     navigation.navigate('Footer')
-    //   }else{
-    //     Alert.alert('error occured')
-    //   }
-    // }catch(err){
-    //   console.log('Login error:', err);
-    // const errorMessage = err?.response?.data?.errors?.[0] || 'Something went wrong';
-    // Alert.alert('Error', errorMessage);
-    // }
+    // navigation.navigate('Footer')
+    try {
+      const data = {
+        user: {
+          email,
+          password,
+        }
+      }
+      const res = await LoginRequest(data);
+      const { id, role: userRole, email: userEmail, token: userToken } = res.data;
+      if(id >= 0){
+        await AsyncStorage.setItem('userEmail', userEmail);
+        await AsyncStorage.setItem('userRole', userRole);
+        await AsyncStorage.setItem('userToken', userToken);
+        navigation.navigate('Footer')
+      }else{
+        Alert.alert('error occured')
+      }
+    }catch(err){
+      console.log('Login error:', err);
+    const errorMessage = err?.response?.data?.errors?.[0] || 'Something went wrong';
+    Alert.alert('Error', errorMessage);
+    }
     
   }
   const handleSignUp = async() =>{
@@ -75,11 +76,11 @@ const AuthrizationScreen = ({navigation}) => {
 
   return (
     <ImageBackground
-      source={require('../assets/Images/Movie_Background.jpg')}
+      source={require('../assets/Images/Background5.jpg')}
       style={[styles.background , isTablet && {paddingTop: verticalScale(15), paddingHorizontal: scale(50)}]}
       blurRadius={4}>
       <View style={styles.header}>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={()=> navigation.navigate('Splash')}>
           <Image
             source={require('../assets/Icons/left-arrow.png')}
             style={[styles.icon , isTablet && { width: verticalScale(20), height: verticalScale(20), marginTop: verticalScale(30) }]}
@@ -90,7 +91,7 @@ const AuthrizationScreen = ({navigation}) => {
       </View>
       <View>
         <Image
-          source={require('../assets/Icons/Logo.png')}
+          source={require('../assets/Images/a.png')}
           style={styles.logo}
         />
       </View>

@@ -4,10 +4,12 @@ import Header from '../Components/Header'
 import HorizontalSlider from '../Components/HorizontalSlider'
 import Card from '../Components/Card'
 import Carousel from '../Components/Carousel'
-import BollywoodCard from '../Components/BollywoodCard'
+import LatestMovies from '../Components/LatestMovies'
 
 import FooterNavigation from '../Navigation/FooterNavigation'
 import { NavigationContainer } from '@react-navigation/native'
+import ActionMovies from '../Components/ActionMovies'
+import SifiMovies from '../Components/SifiMovies'
 
 const HomeScreen = () => {
   return (
@@ -16,9 +18,9 @@ const HomeScreen = () => {
       <ScrollView>
       {/* <HorizontalSlider /> */}
       <Carousel />
-      <BollywoodCard />
-      <BollywoodCard />
-      <BollywoodCard />
+      <LatestMovies />
+      <ActionMovies />
+      <SifiMovies />
       </ScrollView>
     </View>
   )

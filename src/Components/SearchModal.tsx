@@ -1,21 +1,32 @@
 import { FlatList, Modal, StyleSheet, Text, TextInput, View } from 'react-native'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { scale, verticalScale } from '../Constants/Dimensions'
 import BollywoodData from '../Constants/BolywoodData'
-import SearchCard from './SearchCard'
+import MovieCard from './MovieCard'
+import { useSelector } from 'react-redux'
 
 const SearchModal = ({data}) => {
-    const filteredData = BollywoodData.filter(item =>{
-        return item.name.toLowerCase().includes(data.toLowerCase())
-    })
+    const { movies } = useSelector(state => state.movies); 
+  const [AllMovies, setAllMovies] = useState([]);
+
+  useEffect(() => {
+    if (data) {
+      const filteredData = movies.filter(item =>
+        item.title.toLowerCase().includes(data.toLowerCase())
+      );
+      setAllMovies(filteredData);
+    } else {
+      setAllMovies([]);
+    }
+  }, [data, movies]); 
   return (
     <View style={styles.container}>
         {data ? (
             <FlatList
-                data={filteredData}
+                data={AllMovies}
                 keyExtractor={(item) => item.id.toString()}
                 renderItem={({item}) => (
-                    <SearchCard data={item} />
+                    <MovieCard data={item} />
                 )}
                 ListEmptyComponent={<View style={{alignItems:'center'}}><Text style={styles.text}>No Data Found for "{data}"</Text></View>}
              />

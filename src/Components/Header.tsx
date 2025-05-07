@@ -1,11 +1,10 @@
-import React, {useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   Image,
-  Platform,
   Modal,
   TextInput,
   Alert,
@@ -26,32 +25,57 @@ const Header = () => {
   const navigation = useNavigation();
   const [searchText, setSearchText] = useState('');
   const [SearchVisible, setSearchVisible] = useState(false);
+  const [isGuest, setisGuest] = useState(false);
+
   const handlleBackPress = () => {
     setSearchVisible(false);
     setSearchText('');
   }
 
-  const handleLogout = async()=>{
+  const handleLogout = async() => {
     try {
       await AsyncStorage.removeItem('userEmail');
       await AsyncStorage.removeItem('userRole');
-    navigation.replace('Auth');
+      await AsyncStorage.removeItem('userToken');
+      navigation.replace('Auth');
     } catch (error) {
       Alert.alert('Logout failed', 'Something went wrong while logging out.')
     }
   }
+
+  const handleSearch = async () => {
+    const role = await AsyncStorage.getItem('userRole');
+    if (role === 'user' || role === 'supervisor') {
+      setSearchVisible(!SearchVisible);
+    } else {
+      Alert.alert('To access this feature, you need to login to the app.');
+    }
+  }
+
+  useEffect(() => {
+    const Guest = async () => {
+      const role = await AsyncStorage.getItem('userRole');
+      if (role === 'user' || role === 'supervisor') {
+        setisGuest(true);
+      }
+    }
+    Guest()
+  }, []);
+
   return (
     <View
       style={[
         styles.container,
         isTablet && styles.tabletContainer,
       ]}
+      testID="header-container"
     >
       <TouchableOpacity
         style={[
           styles.iconWrapper,
           isTablet && styles.tabletIconWrapper,
         ]}
+        testID="home-icon-wrapper"
       >
         <Image
           source={require('../assets/Icons/www.png')}
@@ -59,9 +83,10 @@ const Header = () => {
             styles.icon,
             isTablet && styles.tabletIcon,
           ]}
+          testID="home-icon"
         />
       </TouchableOpacity>
-      <Text style={styles.Heading}>
+      <Text style={styles.Heading} testID="heading">
         Movie <Text style={{color:'#FFD700'}}>Explorer</Text>
       </Text>
       <TouchableOpacity
@@ -69,14 +94,17 @@ const Header = () => {
           styles.iconWrapper,
           isTablet && styles.tabletIconWrapper,
         ]}
-        onPress={()=>{setSearchVisible(!SearchVisible)}}
+        onPress={() => handleSearch()}
+        testID="search-icon-wrapper"
       >
         <Image
           source={require('../assets/Icons/search.png')}
           style={[
-            styles.icon,{height: verticalScale(19), width: verticalScale(19)},
+            styles.icon,
+            {height: verticalScale(19), width: verticalScale(19)},
             isTablet && styles.tabletIcon,
           ]}
+          testID="search-icon"
         />
       </TouchableOpacity>
       <TouchableOpacity
@@ -85,40 +113,76 @@ const Header = () => {
           isTablet && styles.tabletIconWrapper,
         ]}
         onPress={() => { handleLogout() }}
+        testID="logout-icon-wrapper"
       >
-        <Image
-          source={require('../assets/Icons/logout.png')}
-          style={[
-            styles.icon,{height: verticalScale(19), width: verticalScale(19)},
-            isTablet && styles.tabletIcon,
-          ]}
-        />
+        {isGuest ? (
+          <Image
+            source={require('../assets/Icons/logout.png')}
+            style={[
+              styles.icon,
+              {height: verticalScale(19), width: verticalScale(19)},
+              isTablet && styles.tabletIcon,
+            ]}
+            testID="logout-icon"
+          />
+        ) : (
+          <Image
+            source={require('../assets/Icons/login.png')}
+            style={[
+              styles.icon,
+              {height: verticalScale(19), width: verticalScale(19)},
+              isTablet && styles.tabletIcon,
+            ]}
+            testID="login-icon"
+          />
+        )}
       </TouchableOpacity>
+
+      {/* Modal for search */}
       <Modal
         animationType="slide"
         transparent={true}
         visible={SearchVisible}
-    >
+        testID="search-modal"
+      >
         <View style={styles.ModalContainer}>
-            <View style={styles.Container}>
-              <View style={{flexDirection:'row', alignItems:'center', justifyContent:'space-around',borderBottomWidth:verticalScale(1), borderBottomColor:'#181C14', width:'100%',paddingBottom:verticalScale(10)}}>
-              <TouchableOpacity onPress={()=> handlleBackPress()}>
+          <View style={styles.Container}>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-around',
+                borderBottomWidth: verticalScale(1),
+                borderBottomColor: '#181C14',
+                width: '100%',
+                paddingBottom: verticalScale(10),
+              }}
+            >
+              <TouchableOpacity onPress={() => handlleBackPress()} testID="back-button">
                 <Image
-                source={require('../assets/Icons/left-arrow.png')}
-                style={{width: verticalScale(20), height: verticalScale(20), marginRight: scale(10),tintColor:'#fff'}}
-                 />
+                  source={require('../assets/Icons/left-arrow.png')}
+                  style={{
+                    width: verticalScale(20),
+                    height: verticalScale(20),
+                    marginRight: scale(10),
+                    tintColor: '#fff',
+                  }}
+                  testID="back-arrow"
+                />
               </TouchableOpacity>
-              <TextInput 
+              <TextInput
                 value={searchText}
                 onChangeText={setSearchText}
                 placeholder="Search for movies ..."
                 placeholderTextColor="#fff"
-                style={[styles.Search , isTablet && styles.SearchTablet]} />
-              </View>
-              <SearchModal data={searchText} />
+                style={[styles.Search, isTablet && styles.SearchTablet]}
+                testID="search-input"
+              />
             </View>
+            <SearchModal data={searchText} />
+          </View>
         </View>
-    </Modal>
+      </Modal>
     </View>
   );
 };
@@ -133,12 +197,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop:verticalScale(20),
+    paddingTop: verticalScale(20),
   },
   tabletContainer: {
     height: verticalScale(80),
     paddingHorizontal: scale(15),
-    paddingTop:verticalScale(20),
+    paddingTop: verticalScale(20),
   },
   iconWrapper: {
     padding: moderateScale(8),
@@ -187,22 +251,22 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0 ,0 ,0 ,0.7)',
   },
   Title: {
-      fontSize: 70,
-      fontWeight: 'bold',
-      color: '#fff',
+    fontSize: 70,
+    fontWeight: 'bold',
+    color: '#fff',
   },
   Container: {
-      height:verticalScale(450),
-      width: verticalScale(300),
-      backgroundColor: 'rgb(67, 64, 64)',
-      alignItems: 'center',
-      borderBottomRightRadius: verticalScale(25),
-      borderBottomLeftRadius: verticalScale(25),
-      padding: verticalScale(10),
+    height: verticalScale(450),
+    width: verticalScale(300),
+    backgroundColor: 'rgb(67, 64, 64)',
+    alignItems: 'center',
+    borderBottomRightRadius: verticalScale(25),
+    borderBottomLeftRadius: verticalScale(25),
+    padding: verticalScale(10),
   },
   ModalCloseIcon: {
     width: verticalScale(25),
     height: verticalScale(25),
-    top:verticalScale(10),
-  }
+    top: verticalScale(10),
+  },
 });

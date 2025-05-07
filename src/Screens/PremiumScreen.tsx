@@ -1,11 +1,18 @@
-import { Image, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { FlatList, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
 import { scale, verticalScale } from '../Constants/Dimensions'
 
 const PremiumScreen = () => {
+  const premiumFeatures = [
+    'Ad-Free Experience',
+    'Exclusive Content',
+    'Early Access to New Releases',
+    'Full HD & 4K Streaming',
+    'Global Content Access',
+    'Monthly Surprises',
+  ];
   return (
     <View style={styles.MainContainer}>
-      <ScrollView>
       <View style={styles.PremiumCard}>
         <View style={styles.textArea}>
           <View style={styles.txtArea}>
@@ -17,45 +24,31 @@ const PremiumScreen = () => {
             source={require('../assets/Icons/stars.png')}
             style={styles.stars}
              />
+             <Text style={styles.text}>$299</Text>
           </View>
-
         </View>
-        <View>
+        <View style={styles.contentArea}>
         <Text style={styles.subTitle}>Features Activated</Text>
-        <View style={{flexDirection:'row'}}>
-          <Image source={require('../assets/Icons/checkmark.png')}  style={styles.checkMark}/>
-        <Text>Ad-Free Experience</Text>
-        </View>
-        <Text>Exclusive Content</Text>
-        <Text>Early Access to New Releases</Text>
-        <Text>Full HD & 4K Streaming</Text>
-        <Text>Global Content Access</Text>
-        <Text>Monthly Surprises</Text>
-        </View>
-
-      </View>
-{/* second card */}
-      <View style={styles.PremiumCard}>
-        <View style={styles.textArea}>
-          <View style={styles.txtArea}>
-            <Text style={styles.titleTxt}>Premium</Text>
-            <Text style={styles.titleTxt}>Membership</Text>
+        <FlatList
+        data={premiumFeatures}
+        keyExtractor={(item , index) => index.toString()}
+        renderItem={({item})=>(
+          <View style={styles.featureItem}>
+             <Image
+            source={require('../assets/Icons/checkmark.png')}
+            style={styles.checkMark}
+          />
+          <Text style={styles.text}>{item}</Text>
           </View>
-          <View style={styles.badgeicon}>
-            <Image
-            source={require('../assets/Icons/stars.png')}
-            style={styles.stars}
-             />
-          </View>
-
+        )}
+         />
+         <View style={{alignItems:'center'}}>
+          <TouchableOpacity style={styles.btn}>
+            <Text style={styles.btnTxt}>Buy Now</Text>
+          </TouchableOpacity>
+         </View>
         </View>
-        <View>
-        <Text style={styles.subTitle}>Features Activated</Text>
-        </View>
-
       </View>
-      </ScrollView>
-      
     </View>
   )
 }
@@ -103,12 +96,42 @@ const styles = StyleSheet.create({
     alignItems:'center',
   },
   subTitle: {
-    fontSize:verticalScale(15),
+    fontSize:verticalScale(24),
     color:'#fff',
+    marginBottom:verticalScale(20)
+  },
+  featureItem: {
+    flexDirection:'row',
+    alignItems:'center',
   },
   checkMark: {
-    height:verticalScale(20),
-    width:verticalScale(20)
+    height:verticalScale(22),
+    width:verticalScale(22)
+  },
+  contentArea: {
+    paddingHorizontal:verticalScale(10),
+    paddingTop:verticalScale(10)
+  },
+  text: {
+    fontSize:verticalScale(16),
+    color:'#fff',
+    marginVertical:scale(10),
+    marginLeft:verticalScale(10),
+    lineHeight:verticalScale(16)
+  },
+  btn: {
+    width:'50%',
+    height:verticalScale(40),
+    backgroundColor:'red',
+    alignItems:'center',
+    justifyContent:'center',
+    borderRadius:verticalScale(30),
+    marginTop:verticalScale(20)
+  },
+  btnTxt: {
+    fontSize:verticalScale(24),
+    color:'#fff',
+    lineHeight:verticalScale(24),
   }
   
 })

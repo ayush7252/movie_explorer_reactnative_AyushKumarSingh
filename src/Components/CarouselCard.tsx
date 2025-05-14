@@ -73,14 +73,14 @@ const CarouselCard = ({ item, testID }) => {
                   {item.title}{' '}
                   <Text
                     style={[styles.subTitle, { fontWeight: '400', fontSize: verticalScale(10), color: '#000' }]}
-                    testID={`movie-year-${item.id}`} // Added testID here
+                    testID={`movie-year-${item.id}`} 
                   >
                     ({item.release_year})
                   </Text>
                 </Text>
                 <Text
                   style={[styles.subTitle, { color: '#000', fontWeight: '400', fontSize: verticalScale(10) }]}
-                  testID={`movie-genre-modal-${item.id}`} // Added testID here
+                  testID={`movie-genre-modal-${item.id}`} 
                 >
                   {item.genre}
                 </Text>
@@ -91,44 +91,44 @@ const CarouselCard = ({ item, testID }) => {
                   />
                   <Text
                     style={[styles.subTitle, { color: '#000', marginLeft: verticalScale(5) }]}
-                    testID={`movie-rating-${item.id}`} // Added testID here
+                    testID={`movie-rating-${item.id}`}
                   >
                     {item.rating}
                   </Text>
                 </View>
                 <Text
                   style={[styles.subTitle, { color: '#000', fontWeight: 'bold', marginTop: verticalScale(10) }]}
-                  testID={`movie-duration-${item.id}`} // Added testID here
+                  testID={`movie-duration-${item.id}`} 
                 >
                   Duration :-{' '}
                   <Text
                     style={[styles.subTitle, { color: '#000', fontWeight: '400' }]}
-                    testID={`movie-duration-value-${item.id}`} // Added testID here
+                    testID={`movie-duration-value-${item.id}`}
                   >
                     {item.duration} hrs.
                   </Text>
                 </Text>
                 <Text
                   style={[styles.subTitle, { color: '#000', fontWeight: 'bold', marginTop: verticalScale(10) }]}
-                  testID={`movie-director-${item.id}`} // Added testID here
+                  testID={`movie-director-${item.id}`} 
                 >
                   Director :-{' '}
                   <Text
                     style={[styles.subTitle, { color: '#000', fontWeight: '400' }]}
-                    testID={`movie-director-value-${item.id}`} // Added testID here
+                    testID={`movie-director-value-${item.id}`}
                   >
                     {item.director}
                   </Text>
                 </Text>
                 <Text
                   style={[styles.subTitle, { color: '#000', fontWeight: 'bold', marginTop: verticalScale(10) }]}
-                  testID={`movie-description-title-${item.id}`} // Added testID here
+                  testID={`movie-description-title-${item.id}`} 
                 >
                   Description :-
                 </Text>
                 <Text
                   style={[styles.subTitle, { color: '#000', fontWeight: '400', marginTop: verticalScale(5), lineHeight: verticalScale(18) }]}
-                  testID={`movie-description-${item.id}`} // Added testID here
+                  testID={`movie-description-${item.id}`}
                 >
                   {item.description}
                 </Text>

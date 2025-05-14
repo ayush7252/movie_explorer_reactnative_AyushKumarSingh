@@ -9,18 +9,18 @@ import LatestMovies from '../Components/LatestMovies'
 import FooterNavigation from '../Navigation/FooterNavigation'
 import { NavigationContainer } from '@react-navigation/native'
 import ActionMovies from '../Components/ActionMovies'
-import SifiMovies from '../Components/SifiMovies'
+import ComedyMovies from '../Components/ComedyMovies'
 
 const HomeScreen = () => {
   return (
-    <View style={styles.container}>
+    <View style={styles.container} testID="home-container">
       <Header />
       <ScrollView>
       {/* <HorizontalSlider /> */}
       <Carousel />
       <LatestMovies />
       <ActionMovies />
-      <SifiMovies />
+      <ComedyMovies />
       </ScrollView>
     </View>
   )

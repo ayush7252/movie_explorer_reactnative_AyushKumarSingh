@@ -8,6 +8,7 @@ import {
   Modal,
   TextInput,
   Alert,
+  ToastAndroid,
 } from 'react-native';
 import {
   width,
@@ -34,10 +35,24 @@ const Header = () => {
 
   const handleLogout = async() => {
     try {
-      await AsyncStorage.removeItem('userEmail');
       await AsyncStorage.removeItem('userRole');
       await AsyncStorage.removeItem('userToken');
-      navigation.replace('Auth');
+      await AsyncStorage.removeItem('currentUser');
+      Alert.alert('Are you sure', 'You want to logout?', [
+        {
+          text: 'Cancel',
+          onPress: () =>ToastAndroid.show('Logout cancelled', ToastAndroid.SHORT),
+          style: 'cancel',
+        },
+        {
+          text: 'Yes',
+          onPress: () => {
+            ToastAndroid.show('Logout successful', ToastAndroid.SHORT);
+            navigation.replace('Auth');
+          },
+        },
+      ]);
+      // navigation.replace('Auth');
     } catch (error) {
       Alert.alert('Logout failed', 'Something went wrong while logging out.')
     }
@@ -137,8 +152,6 @@ const Header = () => {
           />
         )}
       </TouchableOpacity>
-
-      {/* Modal for search */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -243,8 +256,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     marginLeft: scale(10),
   },
-
-  // Modal
   ModalContainer: {
     flex: 1,
     alignItems: 'center',

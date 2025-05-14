@@ -1,8 +1,14 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import Card from '../../src/Components/Card'; // adjust the path of your Card component
+import Card from '../../src/Components/Card';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+jest.mock('@react-native-async-storage/async-storage', () => ({
+  getItem: jest.fn(),
+  setItem: jest.fn(),
+  removeItem: jest.fn(),
+}));
 
-// Mock data for the movie card
+// Sample movie data
 const movieData = {
   title: 'Test Movie',
   release_year: 2023,
@@ -16,33 +22,57 @@ const movieData = {
 };
 
 describe('Card Component', () => {
-  it('shows modal with movie details when details button is pressed', async () => {
-    const { getByTestId } = render(<Card item={movieData} />);
+  beforeEach(() => {
+    (AsyncStorage.getItem as jest.Mock).mockResolvedValue('user');
+  });
 
-    // Find the details button and simulate a press
+  it('renders movie title, year, and genre', () => {
+    const { getByTestId } = render(<Card item={movieData} />);
+    expect(getByTestId('title').props.children[0]).toBe('Test Movie');
+    expect(getByTestId('release_year').props.children[1]).toBe('2023');
+    expect(getByTestId('genre').props.children).toBe('Action');
+  });
+
+  it('opens modal when details button is pressed by a guest user', async () => {
+    const { getByTestId, queryByTestId } = render(<Card item={movieData} />);
+
     const detailsButton = getByTestId('details_button');
     fireEvent.press(detailsButton);
 
-    // Wait for modal to appear by checking for the modal's testID
-    const modal = await waitFor(() => getByTestId('ModalContainer'));
-
-    // Check if the modal is displayed
-    expect(modal).toBeTruthy();
-
-    // Optionally, check if the movie title is correctly displayed in the modal
-    const modalTitle = getByTestId('modal_title');
-    expect(modalTitle).toHaveTextContent('Test Movie');
+    await waitFor(() => {
+      expect(queryByTestId('modal_title')).toBeTruthy();
+      expect(getByTestId('modal_title').props.children).toBe('Movie Details');
+    });
   });
 
-  it('renders movie title and genre correctly', () => {
+  it('displays movie description inside modal', async () => {
     const { getByTestId } = render(<Card item={movieData} />);
 
-    // Check if the movie title is rendered correctly
-    const title = getByTestId('title');
-    expect(title).toHaveTextContent('Test Movie');
+    const detailsButton = getByTestId('details_button');
+    fireEvent.press(detailsButton);
 
-    // Check if the genre is rendered correctly
-    const genre = getByTestId('genre');
-    expect(genre).toHaveTextContent('Action');
+    await waitFor(() => {
+      const description = getByTestId('modal_description');
+      expect(description).toBeTruthy();
+      expect(description.props.children).toBe('A thrilling test movie.');
+    });
+  });
+
+  it('closes the modal when close button is pressed', async () => {
+    const { getByTestId, queryByTestId } = render(<Card item={movieData} />);
+
+    const detailsButton = getByTestId('details_button');
+    fireEvent.press(detailsButton);
+
+    await waitFor(() => {
+      expect(getByTestId('modal_title')).toBeTruthy();
+    });
+
+    const closeButton = getByTestId('modal_close_button');
+    fireEvent.press(closeButton);
+
+    await waitFor(() => {
+      expect(queryByTestId('modal_title')).toBeNull();
+    });
   });
 });

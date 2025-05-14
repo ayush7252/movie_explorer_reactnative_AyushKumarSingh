@@ -10,7 +10,7 @@ const LatestMovies = () => {
 
   useEffect(() => {
     const trendingMovies = () => {
-      const filteredData = movies.filter((item) => item.release_year >= 2020);
+      const filteredData = movies.filter((item: { release_year: number; }) => item.release_year >= 2020);
       setAllLetest(filteredData);
     };
     trendingMovies();

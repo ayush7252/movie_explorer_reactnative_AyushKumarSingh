@@ -10,8 +10,15 @@ import { verticalScale, width } from '../Constants/Dimensions';
 import CarouselCard from './CarouselCard';
 
 const Carousel = () => {
-  const [allMovies, setallMovies] = useState([]);
-  const [AllCarousel, setAllCarousel] = useState([]);
+  interface Movie {
+    id: number;
+    rating: number;
+    premium: boolean;
+    
+  }
+
+  const [allMovies, setallMovies] = useState<Movie[]>([]);
+  const [AllCarousel, setAllCarousel] = useState<Movie[]>([]);
 
   const { movies } = useSelector(state => state.movies);
 
@@ -21,7 +28,8 @@ const Carousel = () => {
 
   useEffect(() => {
     const filteredData = allMovies.filter(item => item.rating >= 8);
-    setAllCarousel(filteredData);
+    const result = filteredData.filter(item => item.premium == false);
+    setAllCarousel(result);
   }, [allMovies]);
 
   return (

@@ -22,7 +22,7 @@ describe('Carousel Component', () => {
   const mockMovies = [
     { id: 1, title: 'High Rated 1', rating: 8.1 },
     { id: 2, title: 'High Rated 2', rating: 9.0 },
-    { id: 3, title: 'Low Rated', rating: 6.5 }, // should be filtered out
+    { id: 3, title: 'Low Rated', rating: 6.5 },
   ];
 
   beforeEach(() => {
@@ -44,7 +44,7 @@ describe('Carousel Component', () => {
     const { getByTestId, queryByTestId } = render(<Carousel />);
     expect(getByTestId('carousel-card-1')).toBeTruthy();
     expect(getByTestId('carousel-card-2')).toBeTruthy();
-    expect(queryByTestId('carousel-card-3')).toBeNull(); // filtered out
+    expect(queryByTestId('carousel-card-3')).toBeNull();
   });
 
   it('does not render any card for empty movies', () => {

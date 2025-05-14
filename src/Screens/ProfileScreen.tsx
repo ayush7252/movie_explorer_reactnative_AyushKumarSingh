@@ -1,70 +1,167 @@
-import {Alert, Image, StyleSheet, Text, TouchableOpacity, View, Linking} from 'react-native';
-import React, { useEffect, useState } from 'react';
-import { scale, verticalScale } from '../Constants/Dimensions'
+import {
+  Alert,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  Linking,
+  ToastAndroid,
+} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {scale, verticalScale} from '../Constants/Dimensions';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import {getSubscriptionStatus, toggleNotifications} from '../AxiosRoutes/AxiosRoutes';
 
 const ProfileScreen = () => {
+  const [userEmail, setUserEmail] = useState('');
+  const [userRole, setUserRole] = useState('');
+  const [userName, setUserName] = useState('');
+  const [subscriptionStatus, setSubscriptionStatus] = useState('');
+  const [notificationEnabled, setNotificationEnabled] = useState(true);
+  const [userToken, setuserToken] = useState('')
 
-  const [userEmail, setuserEmail] = useState('')
-  const [userRole, setuserRole] = useState('')
-  useEffect(()=> {
-    const getUserData = async()=>{
-      try{
-        const email = await AsyncStorage.getItem('userEmail')
-        setuserEmail(email)
-        const role = await AsyncStorage.getItem('userRole')
-        setuserRole(role);
-        
-      }catch(err){
-        Alert.alert('Error fetching data');
+
+  useEffect(() => {
+    const getUserData = async () => {
+      try {
+        const currentUserString = await AsyncStorage.getItem('currentUser');
+        if (currentUserString) {
+          const currentUser = JSON.parse(currentUserString);
+          setUserEmail(currentUser.email);
+          setUserRole(currentUser.role);
+          setUserName(currentUser.name);
+        } else {
+          Alert.alert('No user data found in AsyncStorage');
+        }
+      } catch (err) {
+        Alert.alert('Error fetching data from AsyncStorage');
       }
     };
+
+    const fetchSubscriptionStatus = async () => {
+      try {
+        const status = await AsyncStorage.getItem('SubscriptionStatus');
+        setSubscriptionStatus(status);
+      } catch (error) {
+        console.error('Error fetching subscription status:', error);
+        setSubscriptionStatus('Error fetching status');
+      }
+    };
+
+    const getToken = async () => {
+      try {
+        const token = await AsyncStorage.getItem('userToken');
+        setuserToken(token || '');
+      } catch (error) {
+        console.error('Error fetching token:', error);
+      }
+    }
     getUserData();
-  },[]);
+    fetchSubscriptionStatus();
+    getToken();
+  }, []);
+
+  const handleNotification = () => {
+    const toggleNotification = async () => {
+      const newState = !notificationEnabled;
+      try {
+        const res = await toggleNotifications(userToken, newState);
+        if (res === 200) {
+          ToastAndroid.show(
+            `Notifications ${newState ? 'enabled' : 'disabled'}`, ToastAndroid.SHORT)
+        } else {
+          console.error('Failed to update notification state');
+        }
+      } catch (error) {
+        console.error('Error toggling notifications:', error);
+      }
+      setNotificationEnabled(newState);
+    };
+    toggleNotification();
+  };
+  
+
   return (
     <View style={styles.MainContainer}>
-  <View style={styles.ProfileImageContainer}>
-    <Image
-      source={require('../assets/Icons/user.png')}
-      style={styles.ProfilePic}
-    />
-  </View>
+      <View style={styles.ProfileImageContainer}>
+        <Image
+          source={require('../assets/Icons/user.png')}
+          style={styles.ProfilePic}
+        />
+      </View>
 
-  <View style={styles.InfoSection}>
-    <Text style={styles.SectionHeading}>Name</Text>
-    <Text style={styles.nameTxt}>Ayush Kumar Singh</Text>
-  </View>
+      <View style={styles.InfoSection}>
+        <Text style={styles.SectionHeading}>Name</Text>
+        <Text style={styles.nameTxt}>{userName}</Text>
+      </View>
 
-  <View style={styles.InfoSection}>
-    <Text style={styles.SectionHeading}>Email</Text>
-    <Text style={styles.nameTxt}>{userEmail}</Text>
-  </View>
+      <View style={styles.InfoSection}>
+        <Text style={styles.SectionHeading}>Email</Text>
+        <Text style={styles.nameTxt}>{userEmail}</Text>
+      </View>
 
-  <View style={styles.InfoSection}>
-    <Text style={styles.SectionHeading}>Role</Text>
-    <Text style={styles.nameTxt}>{userRole}</Text>
-  </View>
+      <View style={styles.InfoSection}>
+        <Text style={styles.SectionHeading}>Role</Text>
+        <Text style={styles.nameTxt}>{userRole}</Text>
+      </View>
 
-  <Text style={styles.connectHeading}>Connect With Us</Text>
+      <View style={{flexDirection:'row', justifyContent:'space-between'}}>
+        <View style={styles.InfoSection}>
+          <Text style={styles.SectionHeading}>Subscription Status</Text>
+          <Text style={styles.subscriptionTxt}>{subscriptionStatus}</Text>
+        </View>
+        <View style={styles.InfoSection}>
+          <TouchableOpacity onPress={handleNotification}>
+            <Image
+            source={
+              notificationEnabled
+                ? require('../assets/Icons/notification_enabled.png')
+                : require('../assets/Icons/notification_disabled.png')
+            }
+            style={styles.socialIcon}
+             />
+          </TouchableOpacity>
+        </View>
+      </View>
 
-  <View style={styles.SocialContainer}>
-    <TouchableOpacity onPress={() => Linking.openURL('https://wa.me/7307585258')}>
-      <Image source={require('../assets/Icons/whatsapp.png')} style={styles.socialIcon} />
-    </TouchableOpacity>
-    <TouchableOpacity onPress={() => Linking.openURL('mailto:ayushkumarsingh793@gmail.com')}>
-      <Image source={require('../assets/Icons/gmail.png')} style={styles.socialIcon} />
-    </TouchableOpacity>
-    <TouchableOpacity onPress={() => Linking.openURL('https://instagram.com/yourpage')}>
-      <Image source={require('../assets/Icons/instagram.png')} style={styles.socialIcon} />
-    </TouchableOpacity>
-    <TouchableOpacity onPress={() => Linking.openURL('https://linkedin.com/in/yourprofile')}>
-      <Image source={require('../assets/Icons/linkedin.png')} style={styles.socialIcon} />
-    </TouchableOpacity>
-  </View>
-</View>
+      <Text style={styles.connectHeading}>Connect With Us</Text>
 
-  
+      <View style={styles.SocialContainer}>
+        <TouchableOpacity
+          onPress={() => Linking.openURL('https://wa.me/7307585258')}>
+          <Image
+            source={require('../assets/Icons/whatsapp.png')}
+            style={styles.socialIcon}
+          />
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() =>
+            Linking.openURL('mailto:ayushkumarsingh793@gmail.com')
+          }>
+          <Image
+            source={require('../assets/Icons/gmail.png')}
+            style={styles.socialIcon}
+          />
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => Linking.openURL('https://instagram.com/yourpage')}>
+          <Image
+            source={require('../assets/Icons/instagram.png')}
+            style={styles.socialIcon}
+          />
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() =>
+            Linking.openURL('https://linkedin.com/in/yourprofile')
+          }>
+          <Image
+            source={require('../assets/Icons/linkedin.png')}
+            style={styles.socialIcon}
+          />
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 };
 
@@ -81,7 +178,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: verticalScale(30),
-    marginTop:verticalScale(30)
+    marginTop: verticalScale(30),
   },
   ProfilePic: {
     height: verticalScale(120),
@@ -90,7 +187,7 @@ const styles = StyleSheet.create({
     borderWidth: verticalScale(3),
     borderColor: '#FFD700',
     resizeMode: 'cover',
-    tintColor:'#fff'
+    tintColor: '#fff',
   },
   InfoSection: {
     backgroundColor: '#1a1a1a',
@@ -111,27 +208,27 @@ const styles = StyleSheet.create({
     fontSize: verticalScale(18),
     fontWeight: '500',
   },
+  subscriptionTxt: {
+    color: '#fff',
+    fontSize: verticalScale(16),
+    fontWeight: '500',
+  },
   connectHeading: {
     color: '#888',
     fontSize: verticalScale(14),
     fontWeight: '600',
     textAlign: 'center',
-    marginTop: verticalScale(30),
     marginBottom: verticalScale(10),
   },
-  
   SocialContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
     paddingVertical: verticalScale(10),
   },
-  
   socialIcon: {
     height: verticalScale(30),
     width: verticalScale(30),
     tintColor: '#FFD700',
   },
-  
 });
-

@@ -7,6 +7,7 @@ import {
   ImageBackground,
   Image,
   Alert,
+  ToastAndroid,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import {
@@ -20,9 +21,23 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const isTablet = width >= 568;
 
-const Card = ({item}) => {
+interface MovieItem {
+  poster_url: string;
+  title: string;
+  release_year: number;
+  genre: string;
+  premium: boolean;
+  rating: number;
+  duration: string;
+  streaming_platform: string;
+  director: string;
+  description: string;
+}
+
+const Card = ({item}: {item: MovieItem}) => {
   const [selected, setselected] = useState(false);
   const [isGuest, setisGuest] = useState(false);
+  const [premiumMember, setpremiumMember] = useState(true);
 
   useEffect(() => {
     const Guest = async () => {
@@ -31,12 +46,30 @@ const Card = ({item}) => {
         setisGuest(true);
       }
     };
+    const checkPremiumMenbership = async () => {
+      try {
+        const subscriptionStatus = await AsyncStorage.getItem('SubscriptionStatus');
+        if (subscriptionStatus === 'premium') {
+          console.log('Subscription Status:', subscriptionStatus);
+          setpremiumMember(false);
+        } else {
+          console.warn('No subscription status found in AsyncStorage.');
+        }
+      } catch (error) {
+        console.error('Error fetching subscription status:', error);
+      }
+    }
+    checkPremiumMenbership();
     Guest();
   }, []);
 
-  const isModalOpen = () => {
+  const isModalOpen = (item: { premium: boolean; }) => {
     if (isGuest) {
-      setselected(!selected);
+      if(item.premium == true && premiumMember == true){
+        ToastAndroid.show('This is a premium movie.' , ToastAndroid.SHORT)
+      }else{
+        setselected(!selected);
+      }
     } else {
       Alert.alert('To access this feature , You need to login to the app.');
     }
@@ -65,12 +98,24 @@ const Card = ({item}) => {
               {item.genre}
             </Text>
           </View>
+          <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+          {item.premium && (
+            <View style={{justifyContent: 'center', alignItems: 'center', marginTop:verticalScale(-20), right:verticalScale(10),}}>
+              <TouchableOpacity>
+            <Image
+              testID="rating"
+              source={require('../assets/Icons/crown.png')}
+              style={{width: verticalScale(20), height: verticalScale(20)}} />
+          </TouchableOpacity>
+            </View>
+          )}
           <TouchableOpacity
             testID="details_button"
             style={styles.details}
-            onPress={() => isModalOpen()}>
+            onPress={() => isModalOpen(item)}>
             <Text>Details</Text>
           </TouchableOpacity>
+          </View>
         </ImageBackground>
       </View>
 
@@ -293,7 +338,6 @@ const styles = StyleSheet.create({
   },
   ModalContainer: {
     width: isTablet ? width * 0.8 : width * 0.9,
-    // height: isTablet ? height * 0.8 : height * 0.9,
     backgroundColor: '#fff',
     borderRadius: verticalScale(20),
     padding: verticalScale(20),

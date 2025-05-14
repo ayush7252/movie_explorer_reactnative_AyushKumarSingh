@@ -5,17 +5,17 @@ import { scale, verticalScale , width} from '../Constants/Dimensions';
 import Card from './Card';
 import { useSelector } from 'react-redux';
 
-const SifiMovies = () => {
+const ComedyMovies = () => {
 
-  const [allMovies, setallMovies] = useState([])
-  const [AllLetest, setAllLetest] = useState([])
+  const [allMovies, setallMovies] = useState<{ id: number; genre: string; [key: string]: any }[]>([])
+  const [AllLetest, setAllLetest] = useState<{ id: number; genre: string; [key: string]: any }[]>([])
   const { movies } = useSelector(state => state.movies);
   useEffect(()=>{
     const fetchMovies = ()=>{ 
       setallMovies(movies);
     }
     const trendingMovies = ()=>{
-      const filteredData = allMovies.filter((item)=> item.genre === "Si-Fi")
+      const filteredData = allMovies.filter((item)=> item.genre === "Comedy")
       setAllLetest(filteredData)
     }
     fetchMovies();
@@ -23,7 +23,7 @@ const SifiMovies = () => {
   },[allMovies])
   return (
     <View style={styles.MainContainer}>
-        <Text style={{color:'#fff', fontSize: scale(20), fontWeight:'bold', marginLeft:scale(10)}}>Si-Fi Movies</Text>
+        <Text style={{color:'#fff', fontSize: scale(20), fontWeight:'bold', marginLeft:scale(10)}}>Comedy Movies</Text>
       <FlatList
       data={AllLetest}
         horizontal
@@ -37,7 +37,7 @@ const SifiMovies = () => {
   )
 }
 
-export default SifiMovies
+export default ComedyMovies
 
 const styles = StyleSheet.create({
     MainContainer: {

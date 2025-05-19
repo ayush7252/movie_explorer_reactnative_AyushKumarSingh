@@ -4,6 +4,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  ToastAndroid,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -34,36 +35,20 @@ const AllMovies = () => {
   }, []);
 
   const handleReload = async () => {
-    console.log('GetAllMoviesGetAllMovies');
     try {
       const data = await GetAllMovies(1, 10);
       dispatch(setMovies(data));
       setpage(2);
-      Alert.alert('Data updated successfully');
+      ToastAndroid.show('Data Updated Successfully', ToastAndroid.SHORT);
     } catch (err) {
-      Alert.alert('Failed to update data');
-      console.error(err);
+      ToastAndroid.show('Failed to update data', ToastAndroid.SHORT);
     }
   };
   return (
     <View style={styles.MainContainer}>
       <View style={styles.subcontainer}>
-        {isAdmin && (
-          <TouchableOpacity testID="refresh-button" onPress={() => handleReload()}>
-            <Image
-              source={require('../assets/Icons/refresh.png')}
-              style={{
-                width: 23,
-                height: 25,
-                resizeMode: 'contain',
-                tintColor: '#fff',
-                right: verticalScale(50),
-              }}
-            />
-          </TouchableOpacity>
-        )}
         <Text style={styles.MainTitle}>All Movies</Text>
-        <View>{isAdmin && <AddMovies />}</View>
+        <View>{isAdmin && <AddMovies handleReload={handleReload} />}</View>
       </View>
 
       <View>
@@ -83,7 +68,7 @@ const AllMovies = () => {
             </TouchableOpacity>
           ))}
         </ScrollView>
-        <GenreMovies data={SelectedGenre} page={page} setPage={setpage} />
+        <GenreMovies data={SelectedGenre} page={page} setPage={setpage} handleReload={handleReload}/>
       </View>
     </View>
   );

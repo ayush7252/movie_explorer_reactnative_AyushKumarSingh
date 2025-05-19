@@ -4,7 +4,7 @@ import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import HomeScreen from '../Screens/HomeScreen'
 import SplashScreen from '../Screens/SplashScreen'
-import AuthrizationScreen from '../Screens/AuthrizationScreen'
+import AuthrizationScreen from '../Screens/AuthorizationScreen'
 import FooterNavigation from './FooterNavigation'
 import Payment from '../Components/Payment'
 

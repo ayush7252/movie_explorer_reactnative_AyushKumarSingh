@@ -5,6 +5,7 @@ import {
   View,
   ActivityIndicator,
   Image,
+  ToastAndroid,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import {width, verticalScale, moderateScale} from '../Constants/Dimensions';
@@ -12,6 +13,7 @@ import {GetAllMovies, getSubscriptionStatus} from '../AxiosRoutes/AxiosRoutes';
 import {useDispatch} from 'react-redux';
 import {setMovies} from '../redux/slices/movieSlice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import NetInfo from '@react-native-community/netinfo';
 
 const SplashScreen = ({navigation}) => {
   const isTablet = width >= 600;
@@ -19,6 +21,15 @@ const SplashScreen = ({navigation}) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+  const checkInternetAndFetch = async () => {
+    const netState = await NetInfo.fetch();
+
+    if (!netState.isConnected) {
+      ToastAndroid.show('No Internet Connection', ToastAndroid.LONG);
+      setLoading(false);
+      return;
+    }
+
     const FetchMovie = async () => {
       setLoading(true);
       try {
@@ -27,7 +38,8 @@ const SplashScreen = ({navigation}) => {
 
         const role = await AsyncStorage.getItem('userRole');
         if (role) {
-          navigation.replace('Footer'); // `replace` to prevent going back to splash
+           await fetchSubscriptionStatus();
+          navigation.replace('Footer');
         } else {
           navigation.replace('Home');
         }
@@ -38,19 +50,24 @@ const SplashScreen = ({navigation}) => {
         setLoading(false);
       }
     };
-    const fetchSubscriptionStatus = async () => {
-          try {
-            const response = await getSubscriptionStatus();
-            console.log('Subscription Status:', response.plan_type);
-            await AsyncStorage.setItem('SubscriptionStatus' , response.plan_type);
-          } catch (error) {
-            console.error('Error fetching subscription status:', error);
-          }
-        };
 
-    FetchMovie();
-    fetchSubscriptionStatus();
-  }, []);
+    const fetchSubscriptionStatus = async () => {
+      try {
+        const response = await getSubscriptionStatus();
+        console.log('Subscription Status:', response.plan_type);
+        const subStatus = "premium"
+        await AsyncStorage.setItem('SubscriptionStatus', subStatus);
+      } catch (error) {
+        ToastAndroid.show('Loading Data', ToastAndroid.SHORT);
+      }
+    };
+
+    await FetchMovie();
+  };
+
+  checkInternetAndFetch();
+}, [loading]);
+
 
   return (
     <ImageBackground

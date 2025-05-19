@@ -16,8 +16,6 @@ import React, {useEffect, useState} from 'react';
 import {scale, verticalScale} from '../Constants/Dimensions';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {createSubscription} from '../AxiosRoutes/AxiosRoutes';
-
-import WebView from 'react-native-webview';
 import {useNavigation} from '@react-navigation/native';
 
 const PremiumScreen = () => {
@@ -37,30 +35,29 @@ const PremiumScreen = () => {
   ];
 
   const plans = [
-    {id: '1', title: '1_day', price: '$99', duration: '1 Month', tag: 'Basic'},
+    {id: '1', title: '1_day', price: '₹ 1180', duration: '1 day', tag: 'Basic'},
     {
       id: '2',
       title: '7_days',
-      price: '$249',
-      duration: '3 Months',
+      price: '₹ 5900',
+      duration: '7 days',
       tag: 'Best Value',
     },
     {
       id: '3',
-      title: '3_month',
-      price: '$799',
-      duration: '12 Months',
+      title: '1_month',
+      price: '₹ 17700',
+      duration: '30 Days',
       tag: 'Pro',
     },
   ];
   useEffect(() => {
     const checkPremiumMenbership = async () => {
       try {
-        const subscriptionStatus = await AsyncStorage.getItem(
-          'SubscriptionStatus',
-        );
-        if (subscriptionStatus === 'premium') {
-          console.log('Subscription Status:', subscriptionStatus);
+        const status = await AsyncStorage.getItem('SubscriptionStatus');
+        console.log(status)
+        if (status === 'premium') {
+          console.log('Subscription Status:', status);
           setpremiumMember(true);
         } else {
           console.warn('No subscription status found in AsyncStorage.');
@@ -101,14 +98,17 @@ const PremiumScreen = () => {
         const response = await createSubscription(selectedPlan.title, token);
         const data =
           typeof response === 'string' ? JSON.parse(response) : response;
+        console.log('Subscription response:', data);
         const checkoutUrl = data.url;
-        // Linking.openURL(checkoutUrl).catch(err => console.error('Failed to open URL:', err));
         navigation.navigate('Payment', {
           url: checkoutUrl,
           session: data.session_id,
         });
       } catch (error) {
-        console.error('Subscription error:', error);
+        ToastAndroid.show(
+          'Network Error, check your internet connection',
+          ToastAndroid.SHORT,
+        );
       } finally {
         setLoading(false);
       }
@@ -333,12 +333,14 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     marginBottom: verticalScale(5),
+    lineHeight: verticalScale(22),
   },
   planPrice: {
     fontSize: verticalScale(22),
     color: '#ffcc00',
     fontWeight: '900',
     marginBottom: verticalScale(5),
+    lineHeight:verticalScale(16)
   },
   planDuration: {
     fontSize: verticalScale(14),

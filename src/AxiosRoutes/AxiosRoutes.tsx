@@ -111,7 +111,7 @@ export const createMovie = async (
       movieFormData.append('movie[poster]', formData.poster_url);
     if (formData.banner_url)
       movieFormData.append('movie[banner]', formData.banner_url);
-    console.log('vhdffdsjbvjkdb', movieFormData)
+    // console.log('vhdffdsjbvjkdb', movieFormData)
     const response = await axios.post(
       `${API_URL}/api/v1/movies`,
       formData,
@@ -129,9 +129,9 @@ export const createMovie = async (
     console.log(response.data);
     return movie;
   } catch (error: any) {
-    console.error('Error creating movie:', error.message, error.response?.data);
-    Alert.alert(error.response?.data?.error || 'Failed to create movie');
-    return null;
+    // console.error('Error creating movie:', error.message, error.response?.data);
+    // Alert.alert(error.response?.data?.error || 'Failed to create movie');
+    throw error.response?.data?.errors || null;
   }
 }
 
@@ -251,7 +251,7 @@ export const getSubscriptionStatus = async (): Promise<SubscriptionStatus> => {
   try {
     const token = await AsyncStorage.getItem('userToken');
     if (!token) {
-      Alert.alert('You need to sign in first.');
+      // Alert.alert('You need to sign in first.');
       throw new Error('No authentication token found');
     }
 
@@ -262,15 +262,8 @@ export const getSubscriptionStatus = async (): Promise<SubscriptionStatus> => {
     if ('error' in response.data) {
       throw new Error(response.data.error);
     }
-
-    console.log('Subscription status:', response.data);
     return response.data;
   } catch (error: any) {
-    console.error('Subscription Status Error:', {
-      message: error.message,
-      response: error.response?.data,
-    });
-
     throw new Error(
       axios.isAxiosError(error)
         ? error.response?.data?.error || 'Failed to fetch subscription status'

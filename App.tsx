@@ -1,52 +1,47 @@
-import { Alert, PermissionsAndroid, StyleSheet, Text, View } from 'react-native'
-import React, { useEffect } from 'react'
-import MainNavigation from './src/Navigation/MainNavigation'
-import { Provider } from 'react-redux'
-import { store } from './src/redux/store'
+import {Alert, PermissionsAndroid, StyleSheet} from 'react-native';
+import React, {useEffect} from 'react';
+import MainNavigation from './src/Navigation/MainNavigation';
+import {Provider} from 'react-redux';
+import {store} from './src/redux/store';
 import messaging from '@react-native-firebase/messaging';
-import { StripeProvider } from '@stripe/stripe-react-native'
-
+import {StripeProvider} from '@stripe/stripe-react-native';
 
 const App = () => {
-  useEffect(()=>{
-    requestpermission()
-  },[])
+  useEffect(() => {
+    requestpermission();
+  }, []);
 
-  const requestpermission = async()=>{
-    const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
-    if(granted === PermissionsAndroid.RESULTS.GRANTED){
-      // Alert.alert('Permission granted')
+  const requestpermission = async () => {
+    const granted = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+    );
+    if (granted === PermissionsAndroid.RESULTS.GRANTED) {
       getToken();
-    }else{
-      Alert.alert('Permission denied')
+    } else {
+      Alert.alert('Permission denied');
     }
   };
   useEffect(() => {
     const unsubscribe = messaging().onMessage(async remoteMessage => {
       Alert.alert('A new FCM message arrived!', JSON.stringify(remoteMessage));
     });
+    // Alert.alert(remoteMessage.notification?.title ?? 'No Title', remoteMessage.notification?.body ?? 'No Body');
 
     return unsubscribe;
   }, []);
 
-  const getToken = async()=>{
+  const getToken = async () => {
     const token = await messaging().getToken();
-    console.log("token" , token)
-  }
+  };
 
   return (
-      // <SplashScreen />
-      // <AuthrizationScreen />
-      // <HomeScreen />
-      <StripeProvider publishableKey='pk_test_51RMMhm4Z4eanZ4WIYtfMvS6wiqyLDzEoYrRsJ2QaTauX4ZDvAqYCAcgMJjnVi24PfqR0KiTyTEHD2e2rG2CMcwp3002lBSG5J8'>
-        <Provider store={store}>
+    <StripeProvider publishableKey="pk_test_51RMMhm4Z4eanZ4WIYtfMvS6wiqyLDzEoYrRsJ2QaTauX4ZDvAqYCAcgMJjnVi24PfqR0KiTyTEHD2e2rG2CMcwp3002lBSG5J8">
+      <Provider store={store}>
         <MainNavigation />
       </Provider>
-      </StripeProvider>
-      // <AllMovies />
-  )
-}
+    </StripeProvider>
+  );
+};
 
-export default App
+export default App;
 
-const styles = StyleSheet.create({})

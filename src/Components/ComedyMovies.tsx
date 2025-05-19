@@ -1,7 +1,6 @@
 import { FlatList, StyleSheet, Text, View ,ImageBackground } from 'react-native'
 import React, { useEffect, useState } from 'react'
-import BollywoodData from '../Constants/BolywoodData'
-import { scale, verticalScale , width} from '../Constants/Dimensions';
+import { scale, verticalScale} from '../Constants/Dimensions';
 import Card from './Card';
 import { useSelector } from 'react-redux';
 

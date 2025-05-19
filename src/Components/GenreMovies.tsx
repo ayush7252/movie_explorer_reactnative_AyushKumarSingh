@@ -16,10 +16,19 @@ import {verticalScale} from '../Constants/Dimensions';
 import {useDispatch, useSelector} from 'react-redux';
 import {setMovies} from '../redux/slices/movieSlice';
 
-const GenreMovies = ({data, page, setPage}) => {
+type GenreMoviesProps = {
+  data: string;
+  page: number;
+  setPage: React.Dispatch<React.SetStateAction<number>>;
+  handleReload: () => void;
+};
+
+const GenreMovies = ({data, page, setPage, handleReload}: GenreMoviesProps) => {
   const dispatch = useDispatch();
-  const {movies} = useSelector(state => state.movies);
   const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+
+  const {movies} = useSelector(state => state.movies);
   const perPage = 10;
 
   const genreMovie = useMemo(() => {
@@ -28,16 +37,18 @@ const GenreMovies = ({data, page, setPage}) => {
   }, [data, movies]);
 
   const handleLoadMore = async () => {
-    if (loading) return;
+    if (loading || !hasMore) return;
 
     setLoading(true);
     try {
       const response = await GetAllMovies(page, perPage);
       console.log(response);
-      if (response) {
-        const newMovies = response;
-        dispatch(setMovies([...movies, ...newMovies]));
+
+      if (response && response.length > 0) {
+        dispatch(setMovies([...movies, ...response]));
         setPage(prev => prev + 1);
+      } else {
+        setHasMore(false);
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to load more movies');
@@ -59,30 +70,30 @@ const GenreMovies = ({data, page, setPage}) => {
 
       <FlatList
         data={genreMovie}
-        keyExtractor={item => item.id.toString()}
+        keyExtractor={item => item.id}
         renderItem={({item}) => (
-          <MovieCard data={item} testID={`movie-card-${item.id}`} />
+          <MovieCard data={item} testID={`movie-card-${item.id}`} handleReload={handleReload} />
         )}
         testID={`genre-movies-list-${data}`}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.15}
+        contentContainerStyle={{
+          paddingBottom: verticalScale(150),
+        }}
         ListFooterComponent={
-          <View
-            style={{
-              marginTop: verticalScale(10),
-              marginBottom: verticalScale(130),
-            }}>
-            {loading ? (
+          loading ? (
+            <View
+              style={{
+                marginTop: verticalScale(10),
+                marginBottom: verticalScale(130),
+              }}>
               <ActivityIndicator size="large" color="#fff" />
-            ) : (
-              <TouchableOpacity
-                style={styles.LoadMore}
-                onPress={handleLoadMore}
-                disabled={loading}>
-                <Text style={{color: '#fff', fontSize: verticalScale(15)}}>
-                  Load More
-                </Text>
-              </TouchableOpacity>
-            )}
-          </View>
+            </View>
+          ) : null
+        }
+        ListEmptyComponent={
+          <View
+            style={{alignItems: 'center', marginTop: verticalScale(20)}}></View>
         }
       />
     </View>

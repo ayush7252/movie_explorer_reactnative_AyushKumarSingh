@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
   Alert,
   Image,
@@ -13,9 +13,9 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from 'react-native';
-import { verticalScale } from '../Constants/Dimensions';
-import { createMovie } from '../AxiosRoutes/AxiosRoutes';
-import { launchImageLibrary } from 'react-native-image-picker';
+import {verticalScale} from '../Constants/Dimensions';
+import {createMovie} from '../AxiosRoutes/AxiosRoutes';
+import {launchImageLibrary} from 'react-native-image-picker';
 
 interface ImageData {
   url: string;
@@ -38,8 +38,28 @@ interface FormData {
   banner: ImageData | null;
 }
 
-const AddMovies = () => {
+interface AddMoviesProps {
+  handleReload: () => void;
+}
+
+type FieldErrors = {
+  title?: string | null;
+  genre?: string | null;
+  releaseYear?: string | null;
+  rating?: string | null;
+  director?: string | null;
+  description?: string | null;
+  duration?: string | null;
+  isPremium?: string | null;
+  mainLead?: string | null;
+  streamingPlatform?: string | null;
+  poster?: string | null;
+  banner?: string | null;
+};
+
+const AddMovies = ({handleReload}: AddMoviesProps) => {
   const [isVisible, setIsVisible] = useState(false);
+  const [FieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [formData, setFormData] = useState<FormData>({
     title: '',
     genre: '',
@@ -56,17 +76,17 @@ const AddMovies = () => {
   });
 
   const handleChange = (field: keyof FormData, value: string) => {
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       [field]: value,
     }));
   };
 
   const handleSave = async () => {
-    if (isNaN(parseFloat(formData.rating)) || isNaN(parseInt(formData.releaseYear))) {
-      Alert.alert('Error', 'Rating and Release Year must be valid numbers');
-      return;
-    }
+    // if (isNaN(parseFloat(formData.rating)) || isNaN(parseInt(formData.releaseYear))) {
+    //   Alert.alert('Error', 'Rating and Release Year must be valid numbers');
+    //   return;
+    // }
 
     try {
       const formDataToSend = new FormData();
@@ -80,7 +100,10 @@ const AddMovies = () => {
       formDataToSend.append('movie[duration]', formData.duration);
       formDataToSend.append('movie[isPremium]', formData.isPremium);
       formDataToSend.append('movie[main_lead]', formData.mainLead);
-      formDataToSend.append('movie[streaming_platform]', formData.streamingPlatform);
+      formDataToSend.append(
+        'movie[streaming_platform]',
+        formData.streamingPlatform,
+      );
 
       if (formData.poster) {
         formDataToSend.append('movie[poster]', {
@@ -98,9 +121,11 @@ const AddMovies = () => {
       }
 
       const result = await createMovie(formDataToSend);
+      console.log(result);
       if (result) {
         Alert.alert('Success', 'Movie added successfully!');
         setIsVisible(false);
+        handleReload();
         setFormData({
           title: '',
           genre: '',
@@ -119,8 +144,41 @@ const AddMovies = () => {
         Alert.alert('Error', 'Movie creation failed');
       }
     } catch (err) {
-      console.error('Error saving movie:', err);
-      Alert.alert('Error', 'Something went wrong');
+      const errorsArray = err;
+
+      if (Array.isArray(errorsArray)) {
+        const parsedErrors: {[key: string]: string} = {};
+
+        errorsArray.forEach(msg => {
+          if (msg.toLowerCase().includes('title')) {
+            parsedErrors.title = msg;
+          } else if (msg.toLowerCase().includes('genre')) {
+            parsedErrors.genre = msg;
+          } else if (msg.toLowerCase().includes('release')) {
+            parsedErrors.releaseYear = msg;
+          } else if (msg.toLowerCase().includes('rating')) {
+            parsedErrors.rating = msg;
+          } else if (msg.toLowerCase().includes('director')) {
+            parsedErrors.director = msg;
+          } else if (msg.toLowerCase().includes('description')) {
+            parsedErrors.description = msg;
+          } else if (msg.toLowerCase().includes('duration')) {
+            parsedErrors.duration = msg;
+          } else if (msg.toLowerCase().includes('premium')) {
+            parsedErrors.isPremium = msg;
+          } else if (msg.toLowerCase().includes('main lead')) {
+            parsedErrors.mainLead = msg;
+          } else if (msg.toLowerCase().includes('platform')) {
+            parsedErrors.streamingPlatform = msg;
+          } else if (msg.toLowerCase().includes('poster')) {
+            parsedErrors.poster = msg;
+          } else if (msg.toLowerCase().includes('banner')) {
+            parsedErrors.banner = msg;
+          }
+        });
+
+        setFieldErrors(parsedErrors);
+      }
     }
   };
 
@@ -153,7 +211,7 @@ const AddMovies = () => {
         type: asset.type || 'image/jpeg',
       };
 
-      setFormData((prev) => ({
+      setFormData(prev => ({
         ...prev,
         [type]: imageData,
       }));
@@ -163,7 +221,13 @@ const AddMovies = () => {
     }
   };
   const isValidUri = (uri: string | undefined): boolean => {
-    return typeof uri === 'string' && uri.length > 0 && (uri.startsWith('file://') || uri.startsWith('http://') || uri.startsWith('https://'));
+    return (
+      typeof uri === 'string' &&
+      uri.length > 0 &&
+      (uri.startsWith('file://') ||
+        uri.startsWith('http://') ||
+        uri.startsWith('https://'))
+    );
   };
 
   return (
@@ -172,8 +236,7 @@ const AddMovies = () => {
         <TouchableOpacity
           onPress={() => setIsVisible(true)}
           testID="addButton"
-          accessibilityLabel="Open add movie modal"
-        >
+          accessibilityLabel="Open add movie modal">
           <Image
             source={require('../assets/Icons/add.png')}
             style={styles.addIcon}
@@ -185,25 +248,21 @@ const AddMovies = () => {
         transparent={true}
         visible={isVisible}
         onRequestClose={() => setIsVisible(false)}
-        testID="addMovieModal"
-      >
+        testID="addMovieModal">
         <View style={styles.modalBackground}>
           <KeyboardAvoidingView
             behavior={'height'}
-            style={styles.keyboardAvoidingContainer}
-          >
+            style={styles.keyboardAvoidingContainer}>
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
               <ScrollView
                 contentContainerStyle={styles.scrollContainer}
-                keyboardShouldPersistTaps="handled"
-              >
+                keyboardShouldPersistTaps="handled">
                 <View style={styles.modalContainer} testID="ModalContainer">
                   <TouchableOpacity
                     onPress={() => setIsVisible(false)}
                     style={styles.closeButton}
                     testID="closeButton"
-                    accessibilityLabel="Close modal"
-                  >
+                    accessibilityLabel="Close modal">
                     <Image
                       source={require('../assets/Icons/cross.png')}
                       style={styles.closeIcon}
@@ -212,36 +271,49 @@ const AddMovies = () => {
 
                   <Text style={styles.modalTitle}>Add New Movie</Text>
 
-                  {([
-                    'title',
-                    'genre',
-                    'releaseYear',
-                    'rating',
-                    'director',
-                    'description',
-                    'duration',
-                    'isPremium',
-                    'mainLead',
-                    'streamingPlatform',
-                  ] as (keyof FormData)[]).map((field, index) => (
-                    <TextInput
-                      key={index}
-                      style={styles.input}
-                      placeholder={
-                        field === 'isPremium'
-                          ? 'Is Premium (true/false)'
-                          : field.charAt(0).toUpperCase() + field.slice(1)
-                      }
-                      placeholderTextColor={'#000'}
-                      value={typeof formData[field] === 'string' ? formData[field] : ''}
-                      onChangeText={(value) => handleChange(field, value)}
-                      keyboardType={
-                        ['releaseYear', 'rating'].includes(field)
-                          ? 'numeric'
-                          : 'default'
-                      }
-                      testID={`${field}Input`}
-                    />
+                  {(
+                    [
+                      'title',
+                      'genre',
+                      'releaseYear',
+                      'rating',
+                      'director',
+                      'description',
+                      'duration',
+                      'isPremium',
+                      'mainLead',
+                      'streamingPlatform',
+                    ] as (keyof FormData)[]
+                  ).map((field, index) => (
+                    <View key={index} style={{marginBottom: 16}}>
+                      <TextInput
+                        style={styles.input}
+                        placeholder={
+                          field === 'isPremium'
+                            ? 'Is Premium (true/false)'
+                            : field.charAt(0).toUpperCase() + field.slice(1)
+                        }
+                        placeholderTextColor={'#000'}
+                        value={
+                          typeof formData[field] === 'string'
+                            ? formData[field]
+                            : ''
+                        }
+                        onChangeText={value => handleChange(field, value)}
+                        keyboardType={
+                          ['releaseYear', 'rating'].includes(field)
+                            ? 'numeric'
+                            : 'default'
+                        }
+                        testID={`${field}Input`}
+                      />
+                      {FieldErrors[field] && (
+                        <Text
+                          style={{color: 'red', fontSize: 12, marginTop: 4}}>
+                          {FieldErrors[field]}
+                        </Text>
+                      )}
+                    </View>
                   ))}
 
                   <Text style={styles.imageLabel}>Poster Image</Text>
@@ -249,16 +321,20 @@ const AddMovies = () => {
                     style={styles.imageButton}
                     onPress={() => handleImagePick('poster')}
                     testID="posterPickerButton"
-                    accessibilityLabel="Choose poster image"
-                  >
+                    accessibilityLabel="Choose poster image">
                     <Text style={styles.imageButtonText}>Choose Poster</Text>
                   </TouchableOpacity>
                   {formData.poster?.url && isValidUri(formData.poster.url) ? (
                     <Image
-                      source={{ uri: formData.poster.url }}
+                      source={{uri: formData.poster.url}}
                       style={styles.imagePreview}
                       testID="posterPreview"
-                      onError={(e) => console.error('Poster image error:', e.nativeEvent.error)}
+                      onError={e =>
+                        console.error(
+                          'Poster image error:',
+                          e.nativeEvent.error,
+                        )
+                      }
                     />
                   ) : null}
 
@@ -267,16 +343,20 @@ const AddMovies = () => {
                     style={styles.imageButton}
                     onPress={() => handleImagePick('banner')}
                     testID="bannerPickerButton"
-                    accessibilityLabel="Choose banner image"
-                  >
+                    accessibilityLabel="Choose banner image">
                     <Text style={styles.imageButtonText}>Choose Banner</Text>
                   </TouchableOpacity>
                   {formData.banner?.url && isValidUri(formData.banner.url) ? (
                     <Image
-                      source={{ uri: formData.banner.url }}
+                      source={{uri: formData.banner.url}}
                       style={styles.imagePreview}
                       testID="bannerPreview"
-                      onError={(e) => console.error('Banner image error:', e.nativeEvent.error)}
+                      onError={e =>
+                        console.error(
+                          'Banner image error:',
+                          e.nativeEvent.error,
+                        )
+                      }
                     />
                   ) : null}
 
@@ -284,8 +364,7 @@ const AddMovies = () => {
                     style={styles.saveButton}
                     onPress={handleSave}
                     testID="saveButton"
-                    accessibilityLabel="Save movie"
-                  >
+                    accessibilityLabel="Save movie">
                     <Text style={styles.saveButtonText}>Save Movie</Text>
                   </TouchableOpacity>
                 </View>
@@ -323,7 +402,7 @@ const styles = StyleSheet.create({
     padding: 20,
     shadowColor: '#000',
     shadowOpacity: 0.4,
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: {width: 0, height: 4},
     shadowRadius: 10,
     elevation: 8,
   },

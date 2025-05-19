@@ -9,6 +9,7 @@ import {
   TextInput,
   Alert,
   ToastAndroid,
+  Linking,
 } from 'react-native';
 import {
   width,
@@ -34,27 +35,30 @@ const Header = () => {
   }
 
   const handleLogout = async() => {
-    try {
-      await AsyncStorage.removeItem('userRole');
-      await AsyncStorage.removeItem('userToken');
-      await AsyncStorage.removeItem('currentUser');
-      Alert.alert('Are you sure', 'You want to logout?', [
-        {
-          text: 'Cancel',
-          onPress: () =>ToastAndroid.show('Logout cancelled', ToastAndroid.SHORT),
-          style: 'cancel',
-        },
-        {
-          text: 'Yes',
-          onPress: () => {
-            ToastAndroid.show('Logout successful', ToastAndroid.SHORT);
-            navigation.replace('Auth');
+    if(isGuest){
+      try {
+        Alert.alert('Are you sure', 'You want to logout?', [
+          {
+            text: 'Cancel',
+            onPress: () =>ToastAndroid.show('Logout cancelled', ToastAndroid.SHORT),
+            style: 'cancel',
           },
-        },
-      ]);
-      // navigation.replace('Auth');
-    } catch (error) {
-      Alert.alert('Logout failed', 'Something went wrong while logging out.')
+          {
+            text: 'Yes',
+            onPress: async () => {
+              await AsyncStorage.removeItem('userRole');
+              await AsyncStorage.removeItem('userToken');
+              await AsyncStorage.removeItem('currentUser');
+              ToastAndroid.show('Logout successful', ToastAndroid.SHORT);
+              navigation.replace('Auth');
+            },
+          },
+        ]);
+      } catch (error) {
+        Alert.alert('Logout failed', 'Something went wrong while logging out.')
+      }
+    }else{
+      navigation.navigate('Auth')
     }
   }
 
@@ -63,7 +67,7 @@ const Header = () => {
     if (role === 'user' || role === 'supervisor') {
       setSearchVisible(!SearchVisible);
     } else {
-      Alert.alert('To access this feature, you need to login to the app.');
+      ToastAndroid.show('To access this feature, you need to login to the app.', ToastAndroid.SHORT);
     }
   }
 
@@ -76,6 +80,10 @@ const Header = () => {
     }
     Guest()
   }, []);
+
+  const handleWebsite = () => {
+    Linking.openURL('https://movie-explorer-reactjs-go-git-015ec8-gourangs-projects-e0638e74.vercel.app/')
+  }
 
   return (
     <View
@@ -91,6 +99,7 @@ const Header = () => {
           isTablet && styles.tabletIconWrapper,
         ]}
         testID="home-icon-wrapper"
+        onPress={() =>{handleWebsite()}}
       >
         <Image
           source={require('../assets/Icons/www.png')}

@@ -11,7 +11,7 @@ import {
 import React, {useEffect, useState} from 'react';
 import {scale, verticalScale} from '../Constants/Dimensions';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {getSubscriptionStatus, toggleNotifications} from '../AxiosRoutes/AxiosRoutes';
+import {toggleNotifications} from '../AxiosRoutes/AxiosRoutes';
 
 const ProfileScreen = () => {
   const [userEmail, setUserEmail] = useState('');
@@ -19,8 +19,7 @@ const ProfileScreen = () => {
   const [userName, setUserName] = useState('');
   const [subscriptionStatus, setSubscriptionStatus] = useState('');
   const [notificationEnabled, setNotificationEnabled] = useState(true);
-  const [userToken, setuserToken] = useState('')
-
+  const [userToken, setuserToken] = useState('');
 
   useEffect(() => {
     const getUserData = async () => {
@@ -42,7 +41,7 @@ const ProfileScreen = () => {
     const fetchSubscriptionStatus = async () => {
       try {
         const status = await AsyncStorage.getItem('SubscriptionStatus');
-        setSubscriptionStatus(status);
+        setSubscriptionStatus(status ?? '');
       } catch (error) {
         console.error('Error fetching subscription status:', error);
         setSubscriptionStatus('Error fetching status');
@@ -56,31 +55,33 @@ const ProfileScreen = () => {
       } catch (error) {
         console.error('Error fetching token:', error);
       }
-    }
+    };
     getUserData();
     fetchSubscriptionStatus();
     getToken();
   }, []);
 
-  const handleNotification = () => {
     const toggleNotification = async () => {
       const newState = !notificationEnabled;
       try {
         const res = await toggleNotifications(userToken, newState);
         if (res === 200) {
           ToastAndroid.show(
-            `Notifications ${newState ? 'enabled' : 'disabled'}`, ToastAndroid.SHORT)
+            `Notifications ${newState ? 'enabled' : 'disabled'}`,
+            ToastAndroid.SHORT,
+          );
         } else {
-          console.error('Failed to update notification state');
+          // console.error('Failed to update notification state');
+          ToastAndroid.show(
+            `Failed to update notification state`,
+            ToastAndroid.SHORT,
+          );
         }
       } catch (error) {
         console.error('Error toggling notifications:', error);
       }
       setNotificationEnabled(newState);
     };
-    toggleNotification();
-  };
-  
 
   return (
     <View style={styles.MainContainer}>
@@ -106,21 +107,21 @@ const ProfileScreen = () => {
         <Text style={styles.nameTxt}>{userRole}</Text>
       </View>
 
-      <View style={{flexDirection:'row', justifyContent:'space-between'}}>
+      <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
         <View style={styles.InfoSection}>
           <Text style={styles.SectionHeading}>Subscription Status</Text>
           <Text style={styles.subscriptionTxt}>{subscriptionStatus}</Text>
         </View>
         <View style={styles.InfoSection}>
-          <TouchableOpacity onPress={handleNotification}>
+          <TouchableOpacity onPress={toggleNotification}>
             <Image
-            source={
-              notificationEnabled
-                ? require('../assets/Icons/notification_enabled.png')
-                : require('../assets/Icons/notification_disabled.png')
-            }
-            style={styles.socialIcon}
-             />
+              source={
+                notificationEnabled
+                  ? require('../assets/Icons/notification_enabled.png')
+                  : require('../assets/Icons/notification_disabled.png')
+              }
+              style={styles.socialIcon}
+            />
           </TouchableOpacity>
         </View>
       </View>
@@ -186,7 +187,7 @@ const styles = StyleSheet.create({
     borderRadius: scale(80),
     borderWidth: verticalScale(3),
     borderColor: '#FFD700',
-    resizeMode: 'cover',
+    resizeMode: 'contain',
     tintColor: '#fff',
   },
   InfoSection: {

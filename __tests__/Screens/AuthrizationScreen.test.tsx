@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
-import AuthrizationScreen from '../../src/screens/AuthrizationScreen';
+import AuthrizationScreen from '../../src/Screens/AuthorizationScreen';
 import { Alert, ToastAndroid } from 'react-native';
 
 // Mocks

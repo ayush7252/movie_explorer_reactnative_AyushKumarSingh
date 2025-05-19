@@ -9,15 +9,15 @@ import {
   Alert,
   ToastAndroid,
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {
   width,
-  height,
   scale,
   verticalScale,
   moderateScale,
 } from '../Constants/Dimensions';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
 
 const isTablet = width >= 568;
 
@@ -38,36 +38,67 @@ const Card = ({item}: {item: MovieItem}) => {
   const [selected, setselected] = useState(false);
   const [isGuest, setisGuest] = useState(false);
   const [premiumMember, setpremiumMember] = useState(true);
+  const [isSupervisor, setisSupervisor] = useState(false);
 
-  useEffect(() => {
-    const Guest = async () => {
+  useFocusEffect(
+  useCallback(() => {
+    const checkUserRole = async () => {
       const role = await AsyncStorage.getItem('userRole');
-      if (role === 'user' || role === 'supervisor') {
-        setisGuest(true);
-      }
+      setisSupervisor(role === 'supervisor');
     };
-    const checkPremiumMenbership = async () => {
-      try {
-        const subscriptionStatus = await AsyncStorage.getItem('SubscriptionStatus');
-        if (subscriptionStatus === 'premium') {
-          console.log('Subscription Status:', subscriptionStatus);
-          setpremiumMember(false);
-        } else {
-          console.warn('No subscription status found in AsyncStorage.');
-        }
-      } catch (error) {
-        console.error('Error fetching subscription status:', error);
-      }
-    }
-    checkPremiumMenbership();
-    Guest();
-  }, []);
 
-  const isModalOpen = (item: { premium: boolean; }) => {
+    const checkGuest = async () => {
+      const role = await AsyncStorage.getItem('userRole');
+      setisGuest(role === 'user' || role === 'supervisor');
+    };
+
+    const checkPremiumMembership = async () => {
+      const status = await AsyncStorage.getItem('SubscriptionStatus');
+      setpremiumMember(status !== 'premium');
+      console.log(status)
+    };
+
+    checkUserRole();
+    checkGuest();
+    checkPremiumMembership();
+  }, [])
+);
+
+  // useEffect(() => {
+  //   const checkUserRole = async () => {
+  //     const role = await AsyncStorage.getItem('userRole');
+  //     if (role === 'supervisor') {
+  //       setisSupervisor(true);
+  //     }
+  //   };
+
+  //   const Guest = async () => {
+  //     const role = await AsyncStorage.getItem('userRole');
+  //     if (role === 'user' || role === 'supervisor') {
+  //       setisGuest(true);
+  //     }
+  //   };
+  //   const checkPremiumMenbership = async () => {
+  //     const status = await AsyncStorage.getItem('SubscriptionStatus');
+  //     if (status === 'premium') {
+  //       console.log(status);
+  //       setpremiumMember(false);
+  //     }
+  //   };
+  //   checkUserRole();
+  //   checkPremiumMenbership();
+  //   Guest();
+  // }, []);
+
+  const isModalOpen = (item: {premium: boolean}) => {
     if (isGuest) {
-      if(item.premium == true && premiumMember == true){
-        ToastAndroid.show('This is a premium movie.' , ToastAndroid.SHORT)
-      }else{
+      if (
+        item.premium == true &&
+        premiumMember == true &&
+        isSupervisor == false
+      ) {
+        ToastAndroid.show('This is a premium movie.', ToastAndroid.SHORT);
+      } else {
         setselected(!selected);
       }
     } else {
@@ -75,7 +106,7 @@ const Card = ({item}: {item: MovieItem}) => {
     }
   };
   return (
-    <View testID='ModalContainer'>
+    <View testID="ModalContainer">
       <View style={styles.card}>
         <ImageBackground
           testID="poster"
@@ -99,22 +130,32 @@ const Card = ({item}: {item: MovieItem}) => {
             </Text>
           </View>
           <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
-          {item.premium && (
-            <View style={{justifyContent: 'center', alignItems: 'center', marginTop:verticalScale(-20), right:verticalScale(10),}}>
-              <TouchableOpacity>
-            <Image
-              testID="rating"
-              source={require('../assets/Icons/crown.png')}
-              style={{width: verticalScale(20), height: verticalScale(20)}} />
-          </TouchableOpacity>
-            </View>
-          )}
-          <TouchableOpacity
-            testID="details_button"
-            style={styles.details}
-            onPress={() => isModalOpen(item)}>
-            <Text>Details</Text>
-          </TouchableOpacity>
+            {item.premium && (
+              <View
+                style={{
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  marginTop: verticalScale(-20),
+                  right: verticalScale(10),
+                }}>
+                <TouchableOpacity>
+                  <Image
+                    testID="rating"
+                    source={require('../assets/Icons/crown.png')}
+                    style={{
+                      width: verticalScale(20),
+                      height: verticalScale(20),
+                    }}
+                  />
+                </TouchableOpacity>
+              </View>
+            )}
+            <TouchableOpacity
+              testID="details_button"
+              style={styles.details}
+              onPress={() => isModalOpen(item)}>
+              <Text>Details</Text>
+            </TouchableOpacity>
           </View>
         </ImageBackground>
       </View>

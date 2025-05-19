@@ -34,7 +34,7 @@ interface MovieData {
   banner_url: string;
 }
 
-const MovieCard = ({data}: {data: MovieData}) => {
+const MovieCard = ({data, handleReload}: {data: MovieData; handleReload: () => void}) => {
   const [isAdmin, setisAdmin] = useState(false);
   const [selected, setselected] = useState(false);
   const [editedData, setEditedData] = useState({
@@ -138,6 +138,7 @@ const MovieCard = ({data}: {data: MovieData}) => {
             onPress: async () => {
               const success = await deleteMovie(parseInt(data.id, 10));
               if (success) {
+                handleReload();
                 setselected(false);
               }
             },
@@ -155,7 +156,7 @@ const MovieCard = ({data}: {data: MovieData}) => {
       <TouchableOpacity
         style={styles.container}
         onPress={() => setselected(!selected)}
-        onLongPress={() => handleLongPress()}>
+        onLongPress={isAdmin ? handleLongPress : undefined}>
         <View style={styles.posterContainer}>
           <Image source={{uri: data.poster_url}} style={styles.poster} />
         </View>
@@ -310,7 +311,7 @@ const styles = StyleSheet.create({
   },
   title: {
     color: '#fff',
-    fontSize: verticalScale(18),
+    fontSize: verticalScale(16),
   },
   subText: {
     color: '#fff',

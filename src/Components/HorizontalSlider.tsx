@@ -1,27 +1,31 @@
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import React from 'react';
 import categories from '../Constants/SliderData';
-import { width, height, scale, verticalScale, moderateScale } from '../Constants/Dimensions';
+import { scale, verticalScale } from '../Constants/Dimensions';
 
 const HorizontalSlider = () => {
   return (
     <View style={styles.Container}>
-      <ScrollView
+      <FlatList
+        data={categories}
         horizontal
         showsHorizontalScrollIndicator={false}
-        style={styles.categoryScroll}
+        keyExtractor={(item) => item.id.toString()}
+        contentContainerStyle={styles.categoryScroll}
         testID="category-scroll"
-      >
-        {categories.map((category) => (
-          <TouchableOpacity 
-            key={category.id} 
+        renderItem={({ item }) => (
+          <TouchableOpacity
             style={styles.card}
-            testID={`category-card-${category.id}`} 
+            testID={`category-card-${item.id}`}
+            activeOpacity={0.7}
           >
-            <Text style={styles.cardText}>{category.title}</Text>
+            <Text style={styles.cardText}>{item.title}</Text>
           </TouchableOpacity>
-        ))}
-      </ScrollView>
+        )}
+        initialNumToRender={5}
+        ListHeaderComponent={<View style={{ width: scale(5) }} />} 
+        ListFooterComponent={<View style={{ width: scale(5) }} />}
+      />
     </View>
   );
 };
@@ -33,7 +37,7 @@ const styles = StyleSheet.create({
     paddingVertical: verticalScale(10),
   },
   categoryScroll: {
-    paddingHorizontal: scale(10),
+    paddingHorizontal: scale(5),
   },
   card: {
     backgroundColor: 'rgba(255,255,255,0.1)',

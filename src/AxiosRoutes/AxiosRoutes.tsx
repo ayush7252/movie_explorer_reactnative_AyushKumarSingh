@@ -398,3 +398,15 @@ export const toggleNotifications = async (authToken: string , value: boolean) =>
     throw error;
   }
 };
+
+export const fetchMoviesByTitle = async (query: string) => {
+  try {
+    const res = await axios.get(
+      `${API_URL}/api/v1/movies?title=${query}`
+    );
+    return res.data.movies;
+  } catch (error) {
+    console.log('Error fetching:', error);
+    return null;
+  }
+};

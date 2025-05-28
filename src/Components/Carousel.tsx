@@ -1,12 +1,7 @@
-import {
-  FlatList,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
-import React, { useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
-import { verticalScale, width } from '../Constants/Dimensions';
+import {FlatList, StyleSheet, Text, View} from 'react-native';
+import React, {useEffect, useRef, useState} from 'react';
+import {useSelector} from 'react-redux';
+import {verticalScale, width} from '../Constants/Dimensions';
 import CarouselCard from './CarouselCard';
 
 const Carousel = () => {
@@ -14,41 +9,104 @@ const Carousel = () => {
     id: number;
     rating: number;
     premium: boolean;
-    
   }
 
-  const [allMovies, setallMovies] = useState<Movie[]>([]);
-  const [AllCarousel, setAllCarousel] = useState<Movie[]>([]);
+  const [originalData, setOriginalData] = useState<Movie[]>([]);
+  const [loopedData, setLoopedData] = useState<Movie[]>([]);
+  const [modalOpenId, setModalOpenId] = useState<number | null>(null);
 
-  const { movies } = useSelector(state => state.movies);
+  const flatListRef = useRef<FlatList>(null);
+  const currentIndex = useRef(1000); // Start from middle of the loop
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  const {movies} = useSelector((state: any) => state.movies);
 
   useEffect(() => {
-    setallMovies(movies);
+    const filtered = movies.filter(
+      item => item.rating >= 8 && item.premium === false,
+    );
+    setOriginalData(filtered);
   }, [movies]);
 
   useEffect(() => {
-    const filteredData = allMovies.filter(item => item.rating >= 8);
-    const result = filteredData.filter(item => item.premium == false);
-    setAllCarousel(result);
-  }, [allMovies]);
+    // Simulate infinite data by repeating originalData
+    const repeated = Array(2000)
+      .fill(originalData)
+      .flat()
+      .map((item, index) => ({
+        ...item,
+        key: `${item.id}-${index}`, // make unique keys
+      }));
+    setLoopedData(repeated);
+  }, [originalData]);
+
+  useEffect(() => {
+    if (!flatListRef.current || loopedData.length === 0) return;
+
+    // Scroll to a high middle index on mount
+    flatListRef.current.scrollToIndex({
+      index: currentIndex.current,
+      animated: false,
+    });
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [loopedData]);
+
+  // Autoplay effect with pause on modal open
+  useEffect(() => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+
+    if (modalOpenId !== null || loopedData.length === 0) return;
+
+    intervalRef.current = setInterval(() => {
+      currentIndex.current += 1;
+      if (flatListRef.current) {
+        flatListRef.current.scrollToIndex({
+          index: currentIndex.current,
+          animated: true,
+        });
+      }
+    }, 3000); // 3 seconds per slide
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [loopedData, modalOpenId]);
+
+  const handleModalChange = (id: number | null) => {
+    setModalOpenId(id);
+  };
 
   return (
     <View testID="carousel-container">
-      <Text style={styles.title} testID="carousel-title">Trending Movies</Text>
+      <Text style={styles.title} testID="carousel-title">
+        Trending Movies
+      </Text>
       <FlatList
+        ref={flatListRef}
         testID="carousel-flatlist"
-        data={AllCarousel}
+        data={loopedData}
         horizontal
-        pagingEnabled={true}
+        pagingEnabled
         snapToAlignment="center"
         snapToInterval={width}
-        decelerationRate="normal"
+        decelerationRate="fast"
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 1 }}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <CarouselCard item={item} testID={`carousel-card-${item.id}`} />
+        keyExtractor={item => item.key}
+        renderItem={({item}) => (
+          <CarouselCard
+            item={item}
+            testID={`carousel-card-${item.id}`}
+            onModalChange={handleModalChange}
+          />
         )}
+        getItemLayout={(data, index) => ({
+          length: width,
+          offset: width * index,
+          index,
+        })}
       />
     </View>
   );
@@ -57,81 +115,12 @@ const Carousel = () => {
 export default Carousel;
 
 const styles = StyleSheet.create({
-  card: {
-    marginHorizontal: verticalScale(20),
-    borderRadius: verticalScale(12),
-    overflow: 'hidden',
-    width: width - verticalScale(40),
-  },
   title: {
     fontSize: verticalScale(18),
-    fontWeight: 'bold',
+    fontWeight: '500',
     color: '#fff',
     marginVertical: verticalScale(10),
     marginLeft: verticalScale(20),
-  },
-  poster: {
-    width: '100%',
-    height: verticalScale(300),
-  },
-  icon: {
-    width: verticalScale(15),
-    height: verticalScale(15),
-  },
-  Views: {
-    position: 'absolute',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#fff',
-    padding: verticalScale(5),
-    borderRadius: verticalScale(20),
-    borderWidth: verticalScale(1),
-    borderColor: '#000',
-    top: verticalScale(10),
-    right: verticalScale(10),
-  },
-  MovieTitle: {
-    position: 'absolute',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    bottom: verticalScale(10),
-    left: verticalScale(10),
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
-    paddingVertical: verticalScale(10),
-    width: verticalScale(240),
-    paddingHorizontal: verticalScale(10),
-    borderRadius: verticalScale(20),
-    borderWidth: verticalScale(1),
-    borderColor: '#000',
-  },
-  Modal: {
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    flex: 1,
-  },
-  ModalIcon: {
-    width: verticalScale(25),
-    height: verticalScale(25),
-    tintColor: '#fff',
-  },
-  rightMovieTitle: {
-    backgroundColor: 'rgba(133, 132, 132, 0.5)',
-    padding: verticalScale(4),
-    borderRadius: verticalScale(20),
-  },
-  ModalContainer: {
-    height: verticalScale(450),
-    width: verticalScale(300),
-    borderRadius: verticalScale(20),
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-  },
-  ModalCloseIcon: {
-    width: verticalScale(25),
-    height: verticalScale(25),
-    bottom: verticalScale(10),
+    lineHeight: verticalScale(20),
   },
 });

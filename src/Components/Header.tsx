@@ -125,7 +125,7 @@ const Header = () => {
           source={require('../assets/Icons/search.png')}
           style={[
             styles.icon,
-            {height: verticalScale(19), width: verticalScale(19)},
+            {height: verticalScale(17), width: verticalScale(17)},
             isTablet && styles.tabletIcon,
           ]}
           testID="search-icon"
@@ -144,7 +144,7 @@ const Header = () => {
             source={require('../assets/Icons/logout.png')}
             style={[
               styles.icon,
-              {height: verticalScale(19), width: verticalScale(19)},
+              {height: verticalScale(18), width: verticalScale(18)},
               isTablet && styles.tabletIcon,
             ]}
             testID="logout-icon"
@@ -233,8 +233,8 @@ const styles = StyleSheet.create({
     padding: moderateScale(12),
   },
   icon: {
-    width: scale(28),
-    height: scale(28),
+    width: scale(24),
+    height: scale(24),
     tintColor: '#fff',
   },
   tabletIcon: {
@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
   },
   Heading: {
     fontSize: verticalScale(25),
-    fontWeight: 'bold',
+    fontWeight: '500',
     color: '#fff',
     marginLeft: scale(10),
   },

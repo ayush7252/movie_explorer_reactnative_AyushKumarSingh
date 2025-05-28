@@ -8,8 +8,9 @@ import {
   Image,
   Alert,
   ToastAndroid,
+  ScrollView,
 } from 'react-native';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {
   width,
   scale,
@@ -17,11 +18,13 @@ import {
   moderateScale,
 } from '../Constants/Dimensions';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useFocusEffect } from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
+import {LinearGradient} from 'react-native-linear-gradient';
 
 const isTablet = width >= 568;
 
 interface MovieItem {
+  banner_url: string | undefined;
   poster_url: string;
   title: string;
   release_year: number;
@@ -41,62 +44,27 @@ const Card = ({item}: {item: MovieItem}) => {
   const [isSupervisor, setisSupervisor] = useState(false);
 
   useFocusEffect(
-  useCallback(() => {
-    const checkUserRole = async () => {
-      const role = await AsyncStorage.getItem('userRole');
-      setisSupervisor(role === 'supervisor');
-    };
+    useCallback(() => {
+      const checkUserRole = async () => {
+        const role = await AsyncStorage.getItem('userRole');
+        setisSupervisor(role === 'supervisor');
+        setisGuest(role === 'user' || role === 'supervisor');
+      };
 
-    const checkGuest = async () => {
-      const role = await AsyncStorage.getItem('userRole');
-      setisGuest(role === 'user' || role === 'supervisor');
-    };
+      const checkPremiumMembership = async () => {
+        const status = await AsyncStorage.getItem('SubscriptionStatus');
+        setpremiumMember(status !== 'premium');
+        console.log(status);
+      };
 
-    const checkPremiumMembership = async () => {
-      const status = await AsyncStorage.getItem('SubscriptionStatus');
-      setpremiumMember(status !== 'premium');
-      console.log(status)
-    };
-
-    checkUserRole();
-    checkGuest();
-    checkPremiumMembership();
-  }, [])
-);
-
-  // useEffect(() => {
-  //   const checkUserRole = async () => {
-  //     const role = await AsyncStorage.getItem('userRole');
-  //     if (role === 'supervisor') {
-  //       setisSupervisor(true);
-  //     }
-  //   };
-
-  //   const Guest = async () => {
-  //     const role = await AsyncStorage.getItem('userRole');
-  //     if (role === 'user' || role === 'supervisor') {
-  //       setisGuest(true);
-  //     }
-  //   };
-  //   const checkPremiumMenbership = async () => {
-  //     const status = await AsyncStorage.getItem('SubscriptionStatus');
-  //     if (status === 'premium') {
-  //       console.log(status);
-  //       setpremiumMember(false);
-  //     }
-  //   };
-  //   checkUserRole();
-  //   checkPremiumMenbership();
-  //   Guest();
-  // }, []);
+      checkUserRole();
+      checkPremiumMembership();
+    }, []),
+  );
 
   const isModalOpen = (item: {premium: boolean}) => {
     if (isGuest) {
-      if (
-        item.premium == true &&
-        premiumMember == true &&
-        isSupervisor == false
-      ) {
+      if (item.premium && premiumMember && !isSupervisor) {
         ToastAndroid.show('This is a premium movie.', ToastAndroid.SHORT);
       } else {
         setselected(!selected);
@@ -105,9 +73,10 @@ const Card = ({item}: {item: MovieItem}) => {
       Alert.alert('To access this feature , You need to login to the app.');
     }
   };
+
   return (
     <View testID="ModalContainer">
-      <View style={styles.card}>
+      <View style={styles.container}>
         <ImageBackground
           testID="poster"
           source={{uri: item.poster_url}}
@@ -160,19 +129,15 @@ const Card = ({item}: {item: MovieItem}) => {
         </ImageBackground>
       </View>
 
-      <Modal
+      {/* <Modal
         testID="ModalContainer"
         animationType="slide"
         transparent={true}
         visible={selected}
-        onRequestClose={() => {
-          setselected(!selected);
-        }}>
+        onRequestClose={() => setselected(!selected)}>
         <View style={styles.ModalScreen}>
           <View style={styles.ModalContainer}>
-            <Text testID="modal_title" style={styles.ModalTitle}>
-              Movie Details
-            </Text>
+            <Text testID="modal_title" style={styles.ModalTitle}>Movie Details</Text>
             <TouchableOpacity
               testID="modal_close_button"
               onPress={() => setselected(!selected)}
@@ -189,30 +154,83 @@ const Card = ({item}: {item: MovieItem}) => {
               <View style={styles.ModalDataCenter}>
                 <Text style={[styles.title, {color: '#000'}]}>
                   {item.title}{' '}
+                  <Text style={[styles.subTitle, {fontWeight: '400', fontSize: verticalScale(10), color: '#000'}]}>
+                    ( {item.release_year} )
+                  </Text>
+                </Text>
+                <Text style={[styles.subTitle, {fontWeight: '400', fontSize: verticalScale(10), color: '#000', lineHeight: 20}]}> {item.genre} </Text>
+                <View style={styles.RatingSection}>
+                  <Image source={require('../assets/Icons/star.png')} style={styles.RatingIcon} />
+                  <Text style={[styles.subTitle, {color: '#000', marginLeft: verticalScale(5)}]}>{item.rating}</Text>
+                </View>
+                <Text style={[styles.subTitle, {color: '#000', fontWeight: 'bold', marginTop: verticalScale(10)}]}>Duration :- <Text style={[styles.subTitle, {color: '#000', fontWeight: '400'}]}>{item.duration} hrs.</Text></Text>
+                <Text style={[styles.subTitle, {color: '#000', fontWeight: 'bold', marginTop: verticalScale(10)}]}>Streaming Platform :- <Text style={[styles.subTitle, {color: '#000', fontWeight: '400'}]}>{item.streaming_platform}</Text></Text>
+                <Text style={[styles.subTitle, {color: '#000', fontWeight: 'bold', marginTop: verticalScale(10)}]}>Director :- <Text style={[styles.subTitle, {color: '#000', fontWeight: '400'}]}>{item.director}</Text></Text>
+                <Text style={[styles.subTitle, {color: '#000', fontWeight: 'bold', marginTop: verticalScale(10)}]}>Description :-</Text>
+                <Text testID="modal_description" style={[styles.subTitle, {color: '#000', fontWeight: '400', marginTop: verticalScale(5), lineHeight: verticalScale(18)}]}>{item.description}</Text>
+              </View>
+              <TouchableOpacity style={styles.WatchBtn}>
+                <Text>Watch Now</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal> */}
+
+      <Modal
+        animationType="slide"
+        transparent={false}
+        visible={selected}
+        onRequestClose={() => setselected(false)}>
+        <ImageBackground
+          source={{uri: item.banner_url}}
+          style={styles.fullScreenBackground}
+          resizeMode="cover">
+          <LinearGradient
+            colors={['rgba(0,0,0,0.85)', 'rgba(0,0,0,0.7)', 'rgba(0,0,0,0.95)']}
+            style={styles.gradientOverlay}>
+            <TouchableOpacity
+              onPress={() => setselected(false)}
+              style={styles.CrossBtn}>
+              <Image
+                source={require('../assets/Icons/cross.png')}
+                style={styles.crossIcon}
+              />
+            </TouchableOpacity>
+
+            <ScrollView
+              contentContainerStyle={styles.ModalContent}
+              showsVerticalScrollIndicator={false}>
+              <Text style={styles.ModalTitle}>Movie Details</Text>
+
+              <View style={styles.ModalDataTop}>
+                <Image source={{uri: item.poster_url}} style={styles.poster} />
+              </View>
+
+              <View style={styles.ModalDataCenter}>
+                <Text style={[styles.title, {color: '#fff'}]}>
+                  {item.title}{' '}
                   <Text
                     style={[
                       styles.subTitle,
                       {
                         fontWeight: '400',
-                        fontSize: verticalScale(10),
-                        color: '#000',
+                        fontSize: verticalScale(12),
+                        color: '#ccc',
                       },
                     ]}>
-                    ( {item.release_year} )
+                    ({item.release_year})
                   </Text>
                 </Text>
+
                 <Text
                   style={[
                     styles.subTitle,
-                    {
-                      fontWeight: '400',
-                      fontSize: verticalScale(10),
-                      color: '#000',
-                      lineHeight: 20,
-                    },
+                    {color: '#ddd', marginBottom: verticalScale(10)},
                   ]}>
                   {item.genre}
                 </Text>
+
                 <View style={styles.RatingSection}>
                   <Image
                     source={require('../assets/Icons/star.png')}
@@ -221,99 +239,73 @@ const Card = ({item}: {item: MovieItem}) => {
                   <Text
                     style={[
                       styles.subTitle,
-                      {color: '#000', marginLeft: verticalScale(5)},
+                      {color: '#fff', marginLeft: verticalScale(6)},
                     ]}>
                     {item.rating}
                   </Text>
                 </View>
+
                 <Text
                   style={[
                     styles.subTitle,
                     {
-                      color: '#000',
-                      fontWeight: 'bold',
-                      marginTop: verticalScale(10),
+                      color: '#fff',
+                      fontWeight: '600',
+                      marginTop: verticalScale(15),
                     },
                   ]}>
-                  Duration :-{' '}
-                  <Text
-                    style={[
-                      styles.subTitle,
-                      {color: '#000', fontWeight: '400'},
-                    ]}>
-                    {item.duration} hrs.
-                  </Text>
+                  Duration:{' '}
+                  <Text style={{fontWeight: '400'}}>{item.duration} hrs.</Text>
                 </Text>
+
                 <Text
                   style={[
                     styles.subTitle,
                     {
-                      color: '#000',
-                      fontWeight: 'bold',
-                      marginTop: verticalScale(10),
+                      color: '#fff',
+                      fontWeight: '600',
+                      marginTop: verticalScale(12),
                     },
                   ]}>
-                  Streaming Platform :-{' '}
-                  <Text
-                    style={[
-                      styles.subTitle,
-                      {color: '#000', fontWeight: '400'},
-                    ]}>
-                    {item.streaming_platform}
-                  </Text>
+                  Director:{' '}
+                  <Text style={{fontWeight: '400'}}>{item.director}</Text>
                 </Text>
+
                 <Text
                   style={[
                     styles.subTitle,
                     {
-                      color: '#000',
-                      fontWeight: 'bold',
-                      marginTop: verticalScale(10),
+                      color: '#fff',
+                      fontWeight: '600',
+                      marginTop: verticalScale(18),
+                      marginBottom: verticalScale(6),
                     },
                   ]}>
-                  Director :-{' '}
-                  <Text
-                    style={[
-                      styles.subTitle,
-                      {color: '#000', fontWeight: '400'},
-                    ]}>
-                    {item.director}
-                  </Text>
+                  Description:
                 </Text>
+
                 <Text
                   style={[
                     styles.subTitle,
                     {
-                      color: '#000',
-                      fontWeight: 'bold',
-                      marginTop: verticalScale(10),
-                    },
-                  ]}>
-                  Description :-
-                </Text>
-                <Text
-                  testID="modal_description"
-                  style={[
-                    styles.subTitle,
-                    {
-                      color: '#000',
+                      color: '#eee',
                       fontWeight: '400',
-                      marginTop: verticalScale(5),
-                      lineHeight: verticalScale(18),
+                      lineHeight: verticalScale(20),
+                      textAlign: 'justify',
                     },
                   ]}>
                   {item.description}
                 </Text>
               </View>
-              <View>
-                <TouchableOpacity style={styles.WatchBtn}>
-                  <Text>Watch Now</Text>
-                </TouchableOpacity>
-              </View>
-              <View></View>
-            </View>
-          </View>
-        </View>
+
+              <TouchableOpacity style={styles.WatchBtn}>
+                <Text style={{color: '#fff', fontWeight: 'bold'}}>
+                  Watch Now
+                </Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </LinearGradient>
+        </ImageBackground>
       </Modal>
     </View>
   );
@@ -323,31 +315,26 @@ export default Card;
 
 const styles = StyleSheet.create({
   container: {
-    height: verticalScale(160),
+    height: verticalScale(170),
     width: verticalScale(110),
     borderWidth: verticalScale(1),
-    borderRadius: verticalScale(20),
+    borderRadius: verticalScale(10),
     borderColor: '#fff',
-    marginTop: verticalScale(30),
-  },
-  card: {
-    margin: verticalScale(10),
-    backgroundColor: '#000',
-    borderRadius: scale(10),
+    marginTop: verticalScale(20),
+    resizeMode: 'contain',
+    overflow: 'hidden',
+    margin: verticalScale(5),
   },
   poster: {
-    width: scale(150),
+    width: scale(138),
     height: verticalScale(170),
-    borderRadius: scale(10),
-    resizeMode: 'cover',
     justifyContent: 'space-between',
     alignItems: 'center',
+    overflow: 'hidden',
   },
   cardContent: {
     width: '100%',
     bottom: 0,
-    left: 0,
-    right: 0,
     padding: scale(12),
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     borderBottomLeftRadius: scale(10),
@@ -356,7 +343,7 @@ const styles = StyleSheet.create({
   title: {
     color: '#fff',
     fontSize: scale(20),
-    fontWeight: 'bold',
+    fontWeight: '500',
     lineHeight: verticalScale(15),
   },
   subTitle: {
@@ -378,52 +365,58 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   ModalContainer: {
-    width: isTablet ? width * 0.8 : width * 0.9,
-    backgroundColor: '#fff',
+    width: '90%',
+    backgroundColor: 'white',
     borderRadius: verticalScale(20),
     padding: verticalScale(20),
+    elevation: 5,
   },
   ModalTitle: {
-    fontSize: moderateScale(20),
+    fontSize: verticalScale(20),
     fontWeight: 'bold',
+    color: '#000',
+    marginBottom: verticalScale(10),
   },
   CrossBtn: {
     position: 'absolute',
-    top: verticalScale(10),
-    right: verticalScale(10),
+    top: verticalScale(15),
+    right: verticalScale(15),
   },
   ModalDataTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: verticalScale(20),
-    marginTop: verticalScale(20),
   },
   ModalDataCenter: {
-    alignItems: 'flex-start',
-    justifyContent: 'flex-start',
+    marginTop: verticalScale(10),
   },
   RatingSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: verticalScale(1),
-    borderColor: '#D89216',
-    padding: verticalScale(1),
-    paddingHorizontal: verticalScale(6),
-    borderRadius: verticalScale(20),
-    backgroundColor: 'rgba(252, 221, 81, 0.42)',
+    marginTop: verticalScale(10),
   },
   RatingIcon: {
-    height: verticalScale(15),
-    width: verticalScale(15),
+    width: verticalScale(18),
+    height: verticalScale(18),
   },
   WatchBtn: {
-    backgroundColor: '#CD1818',
+    backgroundColor: '#E5E4E2',
+    marginTop: verticalScale(15),
     padding: verticalScale(10),
-    borderRadius: verticalScale(10),
+    borderRadius: verticalScale(8),
     alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: verticalScale(20),
+  },
+  fullScreenBackground: {
+    flex: 1,
+  },
+  gradientOverlay: {
+    flex: 1,
+    paddingHorizontal: verticalScale(20),
+    paddingTop: verticalScale(50),
+  },
+  crossIcon: {
+    width: verticalScale(28),
+    height: verticalScale(28),
+  },
+  ModalContent: {
+    paddingBottom: verticalScale(30),
   },
 });

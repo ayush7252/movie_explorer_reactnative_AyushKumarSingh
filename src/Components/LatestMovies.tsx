@@ -18,7 +18,7 @@ const LatestMovies = () => {
 
   return (
     <View style={styles.MainContainer}>
-      <Text style={{ color: '#fff', fontSize: scale(20), fontWeight: 'bold', marginLeft: scale(10) }}>
+      <Text style={{ color: '#fff', fontSize: scale(20), fontWeight: '500', marginLeft: scale(10) }}>
         Latest Release
       </Text>
       <FlatList

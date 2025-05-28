@@ -199,7 +199,7 @@ const AuthrizationScreen = ({
   return (
     <KeyboardAvoidingView style={{flex: 1}}>
       <ImageBackground
-        source={require('../assets/Images/Background5.jpg')}
+        source={require('../assets/Images/bg2.jpg')}
         style={[
           styles.background,
           isTablet && {
@@ -207,7 +207,7 @@ const AuthrizationScreen = ({
             paddingHorizontal: scale(50),
           },
         ]}
-        blurRadius={4}>
+        blurRadius={0}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.navigate('Splash')}>
             <Image
@@ -530,6 +530,7 @@ const styles = StyleSheet.create({
     paddingTop: verticalScale(30),
     paddingHorizontal: scale(20),
     backgroundColor: '#000',
+    resizeMode:'contain'
   },
   header: {
     flexDirection: 'row',

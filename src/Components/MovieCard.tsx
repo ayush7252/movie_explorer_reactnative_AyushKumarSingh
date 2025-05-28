@@ -89,7 +89,29 @@ const MovieCard = ({data, handleReload}: {data: MovieData; handleReload: () => v
           setEditedData(prev => ({...prev, [keyName]: text}))
         }
         style={styles.InputContainer}
-        placeholder={data?.[keyName]?.toString() || `Enter ${label}`}
+        placeholder={
+          (() => {
+            const movieDataKeyMap: Record<string, keyof MovieData> = {
+              title: 'title',
+              genre: 'genre',
+              releaseYear: 'release_year',
+              rating: 'rating',
+              director: 'director',
+              description: 'description',
+              duration: 'duration',
+              isPremium: 'premium',
+              mainLead: 'main_lead',
+              streamingPlatform: 'streaming_platform',
+              poster: 'poster_url',
+              banner: 'banner_url',
+            };
+            const movieKey = movieDataKeyMap[keyName as string];
+            // @ts-ignore
+            return data && movieKey && data[movieKey] !== undefined
+              ? data[movieKey]?.toString()
+              : `Enter ${label}`;
+          })()
+        }
         keyboardType={keyboardType}
       />
     </View>
@@ -175,107 +197,115 @@ const MovieCard = ({data, handleReload}: {data: MovieData; handleReload: () => v
       </TouchableOpacity>
 
       <Modal
-        animationType="slide"
-        transparent={true}
-        visible={selected}
-        onRequestClose={() => setselected(false)}
-        testID="ModalMainContainer">
-        <View style={styles.MainModalContainer}>
-          <View style={styles.ModalContainer}>
-            <TouchableOpacity
-              onPress={() => setselected(false)}
-              style={styles.CrossBtn}>
-              <Image
-                source={require('../assets/Icons/cross.png')}
-                style={{width: verticalScale(25), height: verticalScale(25)}}
-              />
-            </TouchableOpacity>
+  animationType="slide"
+  transparent={true}
+  visible={selected}
+  onRequestClose={() => setselected(false)}
+  testID="ModalMainContainer"
+>
+  <View style={styles.MainModalContainer}>
+    <View style={styles.ModalContainer}>
+      <TouchableOpacity
+        onPress={() => setselected(false)}
+        style={styles.CrossBtn}
+      >
+        <Image
+          source={require('../assets/Icons/cross.png')}
+          style={{ width: verticalScale(25), height: verticalScale(25) }}
+        />
+      </TouchableOpacity>
 
-            {isAdmin ? (
-              <ScrollView>
-                <View style={styles.imageArea}>
-                  <Image
-                    source={{uri: editedData.poster || data.poster_url}}
-                    style={styles.poster} testID="PosterImage"
-                  />
-                  <TouchableOpacity
-                    style={[styles.chooseBtn, {backgroundColor: '#fff'}]}
-                    onPress={handleSave}>
-                    <Text>Save Data</Text>
-                  </TouchableOpacity>
-                </View>
-
-                <Field label="Title" keyName="title" />
-                <Field label="Genre" keyName="genre" />
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-around',
-                  }}>
-                  <Field
-                    label="Year"
-                    keyName="releaseYear"
-                    keyboardType="numeric"
-                  />
-                  <Field
-                    label="Rating"
-                    keyName="rating"
-                    keyboardType="numeric"
-                  />
-                </View>
-                <Field label="Director" keyName="director" />
-                <Field label="Description" keyName="description" />
-                <Field label="Duration" keyName="duration" />
-                <Field label="Premium (true/false)" keyName="isPremium" />
-                <Field label="Main Lead" keyName="mainLead" />
-                <Field label="Streaming Platform" keyName="streamingPlatform" />
-                <Field label="Poster URL" keyName="poster" />
-                <Field label="Banner URL" keyName="banner" />
-              </ScrollView>
-            ) : (
-              <ScrollView>
-                <View style={styles.ModalDataTop}>
-                  <Image
-                    source={{uri: data.poster_url}}
-                    style={styles.poster} testID="PosterImage"
-                  />
-                </View>
-                <View style={styles.ModalDataCenter}>
-                  <Text style={[styles.title, {color: '#000'}]}>
-                    {data.title}{' '}
-                    <Text style={styles.ModalSubTitle}>
-                      ({data.release_year})
-                    </Text>
-                  </Text>
-                  <Text style={styles.ModalSubTitle2}>{data.genre}</Text>
-                  <View style={styles.RatingSection}>
-                    <Image
-                      source={require('../assets/Icons/star.png')}
-                      style={styles.RatingIcon}
-                    />
-                    <Text
-                      style={[
-                        styles.ModalSubTitle2,
-                        {marginTop: verticalScale(-2)},
-                      ]}>
-                      {data.rating}
-                    </Text>
-                  </View>
-                  <Text style={styles.ModalSubTitle}>
-                    Director:{' '}
-                    <Text style={styles.ModalSubTitle2}>{data.director}</Text>
-                  </Text>
-                  <Text style={styles.ModalSubTitle}>Description:</Text>
-                  <Text style={styles.ModalSubTitle2}>{data.description}</Text>
-                </View>
-                <TouchableOpacity style={styles.WatchBtn}>
-                  <Text style={{color: '#fff'}}>Watch Now</Text>
-                </TouchableOpacity>
-              </ScrollView>
-            )}
+      {isAdmin ? (
+        <ScrollView
+          contentContainerStyle={styles.adminScrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Poster Preview */}
+          <View style={styles.imageArea}>
+            <Image
+              source={{ uri: editedData.poster || data.poster_url }}
+              style={styles.poster}
+              testID="PosterImage"
+            />
           </View>
-        </View>
-      </Modal>
+
+          {/* Basic Info Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Basic Info</Text>
+            <Field label="Title" keyName="title" />
+            <Field label="Genre" keyName="genre" />
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+              <View style={{ flex: 1, marginRight: 8 }}>
+                <Field label="Year" keyName="releaseYear" keyboardType="numeric" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Field label="Rating" keyName="rating" keyboardType="numeric" />
+              </View>
+            </View>
+            <Field label="Director" keyName="director" />
+          </View>
+
+          {/* Additional Details Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Details</Text>
+            <Field label="Description" keyName="description" />
+            <Field label="Duration" keyName="duration" />
+            <Field label="Premium (true/false)" keyName="isPremium" />
+            <Field label="Main Lead" keyName="mainLead" />
+            <Field label="Streaming Platform" keyName="streamingPlatform" />
+          </View>
+
+          {/* Media Links Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Media</Text>
+            <Field label="Poster URL" keyName="poster" />
+            <Field label="Banner URL" keyName="banner" />
+          </View>
+
+          {/* Save Button */}
+          <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
+            <Text style={styles.saveBtnText}>Save Data</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      ) : (
+        <ScrollView contentContainerStyle={styles.nonAdminScrollContent}>
+          <View style={styles.ModalDataTop}>
+            <Image
+              source={{ uri: data.poster_url }}
+              style={styles.poster}
+              testID="PosterImage"
+            />
+          </View>
+          <View style={styles.ModalDataCenter}>
+            <Text style={[styles.title, { color: '#000' }]}>
+              {data.title}{' '}
+              <Text style={styles.ModalSubTitle}>({data.release_year})</Text>
+            </Text>
+            <Text style={styles.ModalSubTitle2}>{data.genre}</Text>
+            <View style={styles.RatingSection}>
+              <Image
+                source={require('../assets/Icons/star.png')}
+                style={styles.RatingIcon}
+              />
+              <Text style={[styles.ModalSubTitle2, { marginTop: verticalScale(-2) }]}>
+                {data.rating}
+              </Text>
+            </View>
+            <Text style={styles.ModalSubTitle}>
+              Director: <Text style={styles.ModalSubTitle2}>{data.director}</Text>
+            </Text>
+            <Text style={styles.ModalSubTitle}>Description:</Text>
+            <Text style={styles.ModalSubTitle2}>{data.description}</Text>
+          </View>
+          <TouchableOpacity style={styles.WatchBtn}>
+            <Text style={{ color: '#fff' }}>Watch Now</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      )}
+    </View>
+  </View>
+</Modal>
+
     </View>
   );
 };
@@ -364,7 +394,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     margin: 20,
     borderRadius: 10,
-    padding: 10,
+    paddingVertical: verticalScale(15),
+    paddingHorizontal: verticalScale(20),
     maxHeight: '90%',
   },
   imageArea: {
@@ -399,5 +430,35 @@ const styles = StyleSheet.create({
     marginTop: 20,
     borderRadius: 10,
     alignItems: 'center',
+  },
+  adminScrollContent: {
+    paddingBottom: verticalScale(20),
+  },
+
+  nonAdminScrollContent: {
+    paddingBottom: verticalScale(20),
+  },
+
+  section: {
+    marginBottom: verticalScale(20),
+  },
+  sectionTitle: {
+    fontSize: verticalScale(16),
+    fontWeight: '700',
+    marginBottom: verticalScale(8),
+    color: '#444',
+  },
+
+  saveBtn: {
+    backgroundColor: '#007BFF',
+    paddingVertical: verticalScale(12),
+    borderRadius: verticalScale(8),
+    alignItems: 'center',
+    marginTop: verticalScale(10),
+  },
+  saveBtnText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: verticalScale(14),
   },
 });

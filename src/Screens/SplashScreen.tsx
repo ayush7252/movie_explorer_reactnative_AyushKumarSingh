@@ -71,10 +71,9 @@ const SplashScreen = ({navigation}) => {
 
   return (
     <ImageBackground
-      source={require('../assets/Images/Background5.jpg')}
+      source={require('../assets/Images/bg2.jpg')}
       style={styles.background}
-      resizeMode="cover"
-      blurRadius={1}>
+      resizeMode="cover">
       <View
         style={{
           backgroundColor: 'rgba(0,0,0,0.5)',

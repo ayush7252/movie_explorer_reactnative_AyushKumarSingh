@@ -22,7 +22,7 @@ const ActionMovies = () => {
   },[allMovies])
   return (
     <View style={styles.MainContainer} testID='MainContainer'>
-        <Text style={{color:'#fff', fontSize: scale(20), fontWeight:'bold', marginLeft:scale(10)}}>Action Movies</Text>
+        <Text style={{color:'#fff', fontSize: scale(20), fontWeight:'500', marginLeft:scale(10)}}>Action Movies</Text>
       <FlatList
       data={AllLetest}
         horizontal

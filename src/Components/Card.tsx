@@ -9,6 +9,7 @@ import {
   Alert,
   ToastAndroid,
   ScrollView,
+  TouchableHighlight,
 } from 'react-native';
 import React, {useCallback, useState} from 'react';
 import {
@@ -76,13 +77,13 @@ const Card = ({item}: {item: MovieItem}) => {
 
   return (
     <View testID="ModalContainer">
-      <View style={styles.container}>
+      <TouchableHighlight style={styles.container} onPress={() => isModalOpen(item)}>
         <ImageBackground
           testID="poster"
           source={{uri: item.poster_url}}
           style={styles.poster}
           resizeMode="cover">
-          <View style={styles.cardContent}>
+          {/* <View style={styles.cardContent}>
             <Text testID="title" style={styles.title}>
               {item.title}{' '}
               <Text
@@ -97,37 +98,40 @@ const Card = ({item}: {item: MovieItem}) => {
             <Text testID="genre" style={styles.subTitle}>
               {item.genre}
             </Text>
-          </View>
+          </View> */}
           <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
             {item.premium && (
               <View
                 style={{
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  marginTop: verticalScale(-20),
-                  right: verticalScale(10),
+                  marginTop: verticalScale(2),
+                  left: verticalScale(35),
+                  backgroundColor:"rgba(110, 111, 116, 0.8)",
+                  borderRadius:verticalScale(20),
+                  padding:verticalScale(4)
+
+                  
                 }}>
                 <TouchableOpacity>
                   <Image
                     testID="rating"
                     source={require('../assets/Icons/crown.png')}
                     style={{
-                      width: verticalScale(20),
-                      height: verticalScale(20),
+                      width: verticalScale(18),
+                      height: verticalScale(18),
                     }}
                   />
                 </TouchableOpacity>
               </View>
             )}
-            <TouchableOpacity
+            {/* <TouchableOpacity
               testID="details_button"
-              style={styles.details}
+              // style={styles.details}
               onPress={() => isModalOpen(item)}>
-              <Text>Details</Text>
-            </TouchableOpacity>
+              <Text></Text>
+            </TouchableOpacity> */}
           </View>
         </ImageBackground>
-      </View>
+      </TouchableHighlight>
 
       {/* <Modal
         testID="ModalContainer"
@@ -201,9 +205,9 @@ const Card = ({item}: {item: MovieItem}) => {
             <ScrollView
               contentContainerStyle={styles.ModalContent}
               showsVerticalScrollIndicator={false}>
-              <Text style={styles.ModalTitle}>Movie Details</Text>
 
               <View style={styles.ModalDataTop}>
+              <Text style={styles.ModalTitle}>Movie Details</Text>
                 <Image source={{uri: item.poster_url}} style={styles.poster} />
               </View>
 
@@ -298,7 +302,10 @@ const Card = ({item}: {item: MovieItem}) => {
                 </Text>
               </View>
 
-              <TouchableOpacity style={styles.WatchBtn}>
+              <TouchableOpacity style={styles.WatchBtn} onPress={()=>{ToastAndroid.show(
+                        'Enjoy Watching!',
+                        ToastAndroid.SHORT,
+                      );}}>
                 <Text style={{color: '#fff', fontWeight: 'bold'}}>
                   Watch Now
                 </Text>
@@ -317,9 +324,7 @@ const styles = StyleSheet.create({
   container: {
     height: verticalScale(170),
     width: verticalScale(110),
-    borderWidth: verticalScale(1),
     borderRadius: verticalScale(10),
-    borderColor: '#fff',
     marginTop: verticalScale(20),
     resizeMode: 'contain',
     overflow: 'hidden',
@@ -328,7 +333,6 @@ const styles = StyleSheet.create({
   poster: {
     width: scale(138),
     height: verticalScale(170),
-    justifyContent: 'space-between',
     alignItems: 'center',
     overflow: 'hidden',
   },
@@ -373,9 +377,9 @@ const styles = StyleSheet.create({
   },
   ModalTitle: {
     fontSize: verticalScale(20),
-    fontWeight: 'bold',
-    color: '#000',
-    marginBottom: verticalScale(10),
+    fontWeight: '500',
+    color: '#fff',
+    marginBottom: verticalScale(20),
   },
   CrossBtn: {
     position: 'absolute',
@@ -398,7 +402,7 @@ const styles = StyleSheet.create({
     height: verticalScale(18),
   },
   WatchBtn: {
-    backgroundColor: '#E5E4E2',
+    backgroundColor: 'rgb(252, 45, 45)',
     marginTop: verticalScale(15),
     padding: verticalScale(10),
     borderRadius: verticalScale(8),

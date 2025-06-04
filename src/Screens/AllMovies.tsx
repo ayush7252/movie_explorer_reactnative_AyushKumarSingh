@@ -83,12 +83,12 @@ const styles = StyleSheet.create({
   },
   Title: {
     fontSize: verticalScale(70),
-    fontWeight: 'bold',
+    // fontWeight: '500',
     color: '#fff',
   },
   MainTitle: {
-    fontSize: verticalScale(30),
-    fontWeight: 'bold',
+    fontSize: verticalScale(25),
+    fontWeight: '500',
     color: '#fff',
   },
   subcontainer: {

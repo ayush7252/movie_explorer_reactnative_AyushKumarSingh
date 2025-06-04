@@ -17,9 +17,7 @@ const App = () => {
     );
     if (granted === PermissionsAndroid.RESULTS.GRANTED) {
       getToken();
-    } else {
-      Alert.alert('Permission denied');
-    }
+    } 
   };
   useEffect(() => {
     const unsubscribe = messaging().onMessage(async remoteMessage => {

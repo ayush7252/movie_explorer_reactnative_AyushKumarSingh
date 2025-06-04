@@ -7,6 +7,7 @@ import {
   Image,
   Modal,
   ScrollView,
+  ToastAndroid,
 } from 'react-native';
 import React, {useState} from 'react';
 import LinearGradient from 'react-native-linear-gradient';
@@ -19,11 +20,13 @@ import {
 
 const CarouselCard = ({ item, testID, onModalChange }) => {
   const [selected, setselected] = useState(false);
-
-  const toggleModal = () => {
-    const newState = !selected;
-    setselected(newState);
-    onModalChange(newState ? item.id : null);
+  const openModal = () => {
+    setselected(true);
+    onModalChange(item.id);
+  };
+  const closeModal = () => {
+    setselected(false);
+    onModalChange(null);
   };
 
   return (
@@ -56,7 +59,7 @@ const CarouselCard = ({ item, testID, onModalChange }) => {
             </View>
             <TouchableOpacity
               style={styles.rightMovieTitle}
-              onPress={toggleModal}
+              onPress={openModal}
               testID={`toggle-modal-${item.id}`}>
               <Image
                 source={require('../assets/Icons/right-up.png')}
@@ -72,7 +75,7 @@ const CarouselCard = ({ item, testID, onModalChange }) => {
         animationType="slide"
         transparent={false}
         visible={selected}
-        onRequestClose={() => setselected(false)}
+        onRequestClose={closeModal}
         testID={`modal-${item.id}`}>
         <ImageBackground
           source={{uri: item.banner_url}}
@@ -82,7 +85,7 @@ const CarouselCard = ({ item, testID, onModalChange }) => {
             colors={['rgba(0,0,0,0.85)', 'rgba(0,0,0,0.7)', 'rgba(0,0,0,0.95)']}
             style={styles.gradientOverlay}>
             <TouchableOpacity
-              onPress={() => setselected(false)}
+              onPress={closeModal}
               style={styles.CrossBtn}
               testID={`close-modal-${item.id}`}>
               <Image
@@ -138,7 +141,7 @@ const CarouselCard = ({ item, testID, onModalChange }) => {
                 <Text
                   style={[styles.subTitle, {color: '#fff', fontWeight: '600', marginTop: verticalScale(15)}]}
                   testID={`movie-duration-${item.id}`}>
-                  Duration: <Text style={{fontWeight: '400'}} testID={`movie-duration-value-${item.id}`}>{item.duration} hrs.</Text>
+                  Duration: <Text style={{fontWeight: '400'}} testID={`movie-duration-value-${item.id}`}>{item.duration} min</Text>
                 </Text>
 
                 <Text
@@ -168,7 +171,7 @@ const CarouselCard = ({ item, testID, onModalChange }) => {
                 </Text>
               </View>
 
-              <TouchableOpacity style={styles.WatchBtn}>
+              <TouchableOpacity style={styles.WatchBtn} onPress={()=>{ToastAndroid.show('Enjoy watching!' , ToastAndroid.SHORT)}}>
                 <Text style={{color: '#fff', fontWeight: 'bold'}} testID={`watch-now-${item.id}`}>
                   Watch Now
                 </Text>
@@ -182,6 +185,7 @@ const CarouselCard = ({ item, testID, onModalChange }) => {
 };
 
 export default CarouselCard;
+
 
 const styles = StyleSheet.create({
   card: {

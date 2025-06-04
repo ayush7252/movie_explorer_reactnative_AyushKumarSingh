@@ -115,7 +115,7 @@ const PremiumScreen = () => {
     }
   };
   return (
-    <ScrollView contentContainerStyle={styles.MainContainer}>
+    <ScrollView contentContainerStyle={styles.MainContainer} showsVerticalScrollIndicator={false}>
       <Text style={styles.pageTitle}>Premium Membership</Text>
 
       {plans.map(item => {
@@ -297,8 +297,8 @@ const styles = StyleSheet.create({
     paddingBottom: verticalScale(40),
   },
   pageTitle: {
-    fontSize: verticalScale(33),
-    fontWeight: '900',
+    fontSize: verticalScale(25),
+    fontWeight: '500',
     color: '#fff',
     textAlign: 'center',
     marginBottom: verticalScale(25),

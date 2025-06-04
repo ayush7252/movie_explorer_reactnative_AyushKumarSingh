@@ -10,7 +10,7 @@ const HomeScreen = () => {
   return (
     <View style={styles.container} testID="home-container">
       <Header />
-      <ScrollView>
+      <ScrollView showsVerticalScrollIndicator={false}>
       <Carousel />
       <LatestMovies />
       <ActionMovies />

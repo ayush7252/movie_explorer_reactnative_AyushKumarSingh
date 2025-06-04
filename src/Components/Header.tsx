@@ -201,7 +201,7 @@ const Header = () => {
                 testID="search-input"
               />
             </View>
-            <SearchModal data={searchText} />
+            <SearchModal data={searchText} onSuggestionPress={setSearchText} />
           </View>
         </View>
       </Modal>

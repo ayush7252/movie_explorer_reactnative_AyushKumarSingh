@@ -399,14 +399,17 @@ export const toggleNotifications = async (authToken: string , value: boolean) =>
   }
 };
 
-export const fetchMoviesByTitle = async (query: string) => {
+export const fetchMoviesByTitle = async (query: string, signal?: AbortSignal) => {
   try {
-    const res = await axios.get(
-      `${API_URL}/api/v1/movies?title=${query}`
-    );
+    const res = await axios.get(`${API_URL}/api/v1/movies?title=${query}`, { signal });
     return res.data.movies;
   } catch (error) {
-    console.log('Error fetching:', error);
-    return null;
+    if (axios.isCancel(error)) {
+      console.log('Request canceled:', error.message);
+      return null; // Silently handle cancellation
+    } else {
+      console.log('Error fetching:', error);
+      return null;
+    }
   }
 };

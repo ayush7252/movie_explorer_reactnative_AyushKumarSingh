@@ -1,3 +1,4 @@
+import React, {useEffect, useState} from 'react';
 import {
   Alert,
   Image,
@@ -7,8 +8,8 @@ import {
   View,
   Linking,
   ToastAndroid,
+  ActivityIndicator,
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
 import {scale, verticalScale} from '../Constants/Dimensions';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {toggleNotifications} from '../AxiosRoutes/AxiosRoutes';
@@ -19,6 +20,7 @@ const ProfileScreen = () => {
   const [userName, setUserName] = useState('');
   const [subscriptionStatus, setSubscriptionStatus] = useState('');
   const [notificationEnabled, setNotificationEnabled] = useState(true);
+  const [notificationLoading, setNotificationLoading] = useState(false);
   const [userToken, setuserToken] = useState('');
 
   useEffect(() => {
@@ -61,27 +63,28 @@ const ProfileScreen = () => {
     getToken();
   }, []);
 
-    const toggleNotification = async () => {
-      const newState = !notificationEnabled;
-      try {
-        const res = await toggleNotifications(userToken, newState);
-        if (res === 200) {
-          ToastAndroid.show(
-            `Notifications ${newState ? 'enabled' : 'disabled'}`,
-            ToastAndroid.SHORT,
-          );
-        } else {
-          // console.error('Failed to update notification state');
-          ToastAndroid.show(
-            `Failed to update notification state`,
-            ToastAndroid.SHORT,
-          );
-        }
-      } catch (error) {
-        console.error('Error toggling notifications:', error);
+  const toggleNotification = async () => {
+    const newState = !notificationEnabled;
+    setNotificationLoading(true);
+    try {
+      const res = await toggleNotifications(userToken, newState);
+      if (res === 200) {
+        ToastAndroid.show(
+          `Notifications ${newState ? 'enabled' : 'disabled'}`,
+          ToastAndroid.SHORT,
+        );
+      } else {
+        ToastAndroid.show(
+          `Failed to update notification state`,
+          ToastAndroid.SHORT,
+        );
       }
-      setNotificationEnabled(newState);
-    };
+    } catch (error) {
+      console.error('Error toggling notifications:', error);
+    }
+    setNotificationEnabled(newState);
+    setNotificationLoading(false);
+  };
 
   return (
     <View style={styles.MainContainer}>
@@ -113,15 +116,19 @@ const ProfileScreen = () => {
           <Text style={styles.subscriptionTxt}>{subscriptionStatus}</Text>
         </View>
         <View style={styles.InfoSection}>
-          <TouchableOpacity onPress={toggleNotification}>
-            <Image
-              source={
-                notificationEnabled
-                  ? require('../assets/Icons/notification_enabled.png')
-                  : require('../assets/Icons/notification_disabled.png')
-              }
-              style={styles.socialIcon}
-            />
+          <TouchableOpacity onPress={toggleNotification} disabled={notificationLoading}>
+            {notificationLoading ? (
+              <ActivityIndicator size="large" color="#FFD700" />
+            ) : (
+              <Image
+                source={
+                  notificationEnabled
+                    ? require('../assets/Icons/notification_enabled.png')
+                    : require('../assets/Icons/notification_disabled.png')
+                }
+                style={styles.socialIcon}
+              />
+            )}
           </TouchableOpacity>
         </View>
       </View>
@@ -146,7 +153,7 @@ const ProfileScreen = () => {
           />
         </TouchableOpacity>
         <TouchableOpacity
-          onPress={() => Linking.openURL('https://instagram.com/yourpage')}>
+          onPress={() => Linking.openURL('https://instagram.com')}>
           <Image
             source={require('../assets/Icons/instagram.png')}
             style={styles.socialIcon}
@@ -182,12 +189,8 @@ const styles = StyleSheet.create({
     marginTop: verticalScale(30),
   },
   ProfilePic: {
-    height: verticalScale(120),
-    width: verticalScale(120),
-    borderRadius: scale(80),
-    borderWidth: verticalScale(3),
-    borderColor: '#FFD700',
-    resizeMode: 'contain',
+    height: verticalScale(80),
+    width: verticalScale(80),
     tintColor: '#fff',
   },
   InfoSection: {

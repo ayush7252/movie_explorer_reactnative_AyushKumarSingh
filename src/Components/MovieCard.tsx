@@ -1,7 +1,7 @@
 import {
   Alert,
   Image,
-  Linking,
+  ImageBackground,
   Modal,
   ScrollView,
   StyleSheet,
@@ -10,13 +10,13 @@ import {
   TouchableOpacity,
   View,
   KeyboardTypeOptions,
+  ToastAndroid,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {scale, verticalScale} from '../Constants/Dimensions';
-import {deleteMovie} from '../AxiosRoutes/AxiosRoutes';
-import { updateMovie } from '../AxiosRoutes/AxiosRoutes'; 
-
+import {deleteMovie, updateMovie} from '../AxiosRoutes/AxiosRoutes';
+import LinearGradient from 'react-native-linear-gradient';
 
 interface MovieData {
   id: string;
@@ -34,7 +34,13 @@ interface MovieData {
   banner_url: string;
 }
 
-const MovieCard = ({data, handleReload}: {data: MovieData; handleReload: () => void}) => {
+const MovieCard = ({
+  data,
+  handleReload,
+}: {
+  data: MovieData;
+  handleReload: () => void;
+}) => {
   const [isAdmin, setisAdmin] = useState(false);
   const [selected, setselected] = useState(false);
   const [editedData, setEditedData] = useState({
@@ -80,7 +86,15 @@ const MovieCard = ({data, handleReload}: {data: MovieData; handleReload: () => v
     fetchUserRole();
   }, [data]);
 
-  const Field = ({label, keyName, keyboardType = 'default'}: {label: string; keyName: keyof typeof editedData; keyboardType?: KeyboardTypeOptions}) => (
+  const Field = ({
+    label,
+    keyName,
+    keyboardType = 'default',
+  }: {
+    label: string;
+    keyName: keyof typeof editedData;
+    keyboardType?: KeyboardTypeOptions;
+  }) => (
     <View style={{marginBottom: verticalScale(10)}}>
       <Text style={styles.inputHeading}>{label}</Text>
       <TextInput
@@ -89,29 +103,27 @@ const MovieCard = ({data, handleReload}: {data: MovieData; handleReload: () => v
           setEditedData(prev => ({...prev, [keyName]: text}))
         }
         style={styles.InputContainer}
-        placeholder={
-          (() => {
-            const movieDataKeyMap: Record<string, keyof MovieData> = {
-              title: 'title',
-              genre: 'genre',
-              releaseYear: 'release_year',
-              rating: 'rating',
-              director: 'director',
-              description: 'description',
-              duration: 'duration',
-              isPremium: 'premium',
-              mainLead: 'main_lead',
-              streamingPlatform: 'streaming_platform',
-              poster: 'poster_url',
-              banner: 'banner_url',
-            };
-            const movieKey = movieDataKeyMap[keyName as string];
-            // @ts-ignore
-            return data && movieKey && data[movieKey] !== undefined
-              ? data[movieKey]?.toString()
-              : `Enter ${label}`;
-          })()
-        }
+        placeholder={(() => {
+          const movieDataKeyMap: Record<string, keyof MovieData> = {
+            title: 'title',
+            genre: 'genre',
+            releaseYear: 'release_year',
+            rating: 'rating',
+            director: 'director',
+            description: 'description',
+            duration: 'duration',
+            isPremium: 'premium',
+            mainLead: 'main_lead',
+            streamingPlatform: 'streaming_platform',
+            poster: 'poster_url',
+            banner: 'banner_url',
+          };
+          const movieKey = movieDataKeyMap[keyName as string];
+          // @ts-ignore
+          return data && movieKey && data[movieKey] !== undefined
+            ? data[movieKey]?.toString()
+            : `Enter ${label}`;
+        })()}
         keyboardType={keyboardType}
       />
     </View>
@@ -125,13 +137,13 @@ const MovieCard = ({data, handleReload}: {data: MovieData; handleReload: () => v
         rating: parseFloat(editedData.rating) || 0,
         release_year: data.release_year || editedData.releaseYear,
         main_lead: data.main_lead || editedData.mainLead,
-        streaming_platform: data.streaming_platform || editedData.streamingPlatform,
+        streaming_platform:
+          data.streaming_platform || editedData.streamingPlatform,
       });
-      console.log('Updated movie:', updated);
-  
       if (updated) {
         Alert.alert('Success', 'Movie updated successfully');
         setselected(false);
+        handleReload();
       } else {
         Alert.alert('Error', 'Failed to update movie');
       }
@@ -140,7 +152,6 @@ const MovieCard = ({data, handleReload}: {data: MovieData; handleReload: () => v
       Alert.alert('Error', 'An error occurred while saving the movie.');
     }
   };
-  
 
   const handleLongPress = async () => {
     const role = await AsyncStorage.getItem('userRole');
@@ -174,7 +185,7 @@ const MovieCard = ({data, handleReload}: {data: MovieData; handleReload: () => v
   };
 
   return (
-    <View testID='MovieCardContainer'>
+    <View testID="MovieCardContainer">
       <TouchableOpacity
         style={styles.container}
         onPress={() => setselected(!selected)}
@@ -197,115 +208,175 @@ const MovieCard = ({data, handleReload}: {data: MovieData; handleReload: () => v
       </TouchableOpacity>
 
       <Modal
-  animationType="slide"
-  transparent={true}
-  visible={selected}
-  onRequestClose={() => setselected(false)}
-  testID="ModalMainContainer"
->
-  <View style={styles.MainModalContainer}>
-    <View style={styles.ModalContainer}>
-      <TouchableOpacity
-        onPress={() => setselected(false)}
-        style={styles.CrossBtn}
-      >
-        <Image
-          source={require('../assets/Icons/cross.png')}
-          style={{ width: verticalScale(25), height: verticalScale(25) }}
-        />
-      </TouchableOpacity>
-
-      {isAdmin ? (
-        <ScrollView
-          contentContainerStyle={styles.adminScrollContent}
-          keyboardShouldPersistTaps="handled"
-        >
-          {/* Poster Preview */}
-          <View style={styles.imageArea}>
-            <Image
-              source={{ uri: editedData.poster || data.poster_url }}
-              style={styles.poster}
-              testID="PosterImage"
-            />
-          </View>
-
-          {/* Basic Info Section */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Basic Info</Text>
-            <Field label="Title" keyName="title" />
-            <Field label="Genre" keyName="genre" />
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-              <View style={{ flex: 1, marginRight: 8 }}>
-                <Field label="Year" keyName="releaseYear" keyboardType="numeric" />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Field label="Rating" keyName="rating" keyboardType="numeric" />
-              </View>
-            </View>
-            <Field label="Director" keyName="director" />
-          </View>
-
-          {/* Additional Details Section */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Details</Text>
-            <Field label="Description" keyName="description" />
-            <Field label="Duration" keyName="duration" />
-            <Field label="Premium (true/false)" keyName="isPremium" />
-            <Field label="Main Lead" keyName="mainLead" />
-            <Field label="Streaming Platform" keyName="streamingPlatform" />
-          </View>
-
-          {/* Media Links Section */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Media</Text>
-            <Field label="Poster URL" keyName="poster" />
-            <Field label="Banner URL" keyName="banner" />
-          </View>
-
-          {/* Save Button */}
-          <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
-            <Text style={styles.saveBtnText}>Save Data</Text>
-          </TouchableOpacity>
-        </ScrollView>
-      ) : (
-        <ScrollView contentContainerStyle={styles.nonAdminScrollContent}>
-          <View style={styles.ModalDataTop}>
-            <Image
-              source={{ uri: data.poster_url }}
-              style={styles.poster}
-              testID="PosterImage"
-            />
-          </View>
-          <View style={styles.ModalDataCenter}>
-            <Text style={[styles.title, { color: '#000' }]}>
-              {data.title}{' '}
-              <Text style={styles.ModalSubTitle}>({data.release_year})</Text>
-            </Text>
-            <Text style={styles.ModalSubTitle2}>{data.genre}</Text>
-            <View style={styles.RatingSection}>
+        animationType="slide"
+        transparent={false}
+        visible={selected}
+        onRequestClose={() => setselected(false)}
+        testID="ModalMainContainer">
+        <ImageBackground
+          source={{uri: data.banner_url}}
+          style={styles.fullScreenBackground}
+          resizeMode="cover">
+          <LinearGradient
+            colors={['rgba(0,0,0,0.85)', 'rgba(0,0,0,0.7)', 'rgba(0,0,0,0.95)']}
+            style={styles.gradientOverlay}>
+            <TouchableOpacity
+              onPress={() => setselected(false)}
+              style={styles.CrossBtn}>
               <Image
-                source={require('../assets/Icons/star.png')}
-                style={styles.RatingIcon}
+                source={require('../assets/Icons/cross.png')}
+                style={styles.crossIcon}
               />
-              <Text style={[styles.ModalSubTitle2, { marginTop: verticalScale(-2) }]}>
-                {data.rating}
-              </Text>
-            </View>
-            <Text style={styles.ModalSubTitle}>
-              Director: <Text style={styles.ModalSubTitle2}>{data.director}</Text>
-            </Text>
-            <Text style={styles.ModalSubTitle}>Description:</Text>
-            <Text style={styles.ModalSubTitle2}>{data.description}</Text>
-          </View>
-          <TouchableOpacity style={styles.WatchBtn}>
-            <Text style={{ color: '#fff' }}>Watch Now</Text>
-          </TouchableOpacity>
-        </ScrollView>
-      )}
-    </View>
-  </View>
-</Modal>
+            </TouchableOpacity>
 
+            {isAdmin ? (
+              <View style={styles.adminModalContentBox}>
+                <ScrollView
+                  contentContainerStyle={styles.adminScrollContent}
+                  keyboardShouldPersistTaps="handled"
+                  showsVerticalScrollIndicator={false}
+                >
+                  <View style={styles.imageArea}>
+                    <Image
+                      source={{uri: editedData.poster || data.poster_url}}
+                      style={styles.poster}
+                      testID="PosterImage"
+                    />
+                  </View>
+                  <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Basic Info</Text>
+                    <Field label="Title" keyName="title" />
+                    <Field label="Genre" keyName="genre" />
+                    <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+                      <View style={{flex: 1, marginRight: 8}}>
+                        <Field label="Year" keyName="releaseYear" keyboardType="numeric" />
+                      </View>
+                      <View style={{flex: 1}}>
+                        <Field label="Rating" keyName="rating" keyboardType="numeric" />
+                      </View>
+                    </View>
+                    <Field label="Director" keyName="director" />
+                  </View>
+                  <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Details</Text>
+                    <Field label="Description" keyName="description" />
+                    <Field label="Duration" keyName="duration" />
+                    <Field label="Premium (true/false)" keyName="isPremium" />
+                    <Field label="Main Lead" keyName="mainLead" />
+                    <Field label="Streaming Platform" keyName="streamingPlatform" />
+                  </View>
+                  <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Media</Text>
+                    <Field label="Poster URL" keyName="poster" />
+                    <Field label="Banner URL" keyName="banner" />
+                  </View>
+                  <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
+                    <Text style={styles.saveBtnText}>Save Data</Text>
+                  </TouchableOpacity>
+                </ScrollView>
+              </View>
+            ) : (
+              <ScrollView
+                contentContainerStyle={styles.ModalContent}
+                showsVerticalScrollIndicator={false}>
+                <Text style={styles.ModalTitle}>Movie Details</Text>
+                <View style={styles.ModalDataTop}>
+                  <Image source={{uri: data.poster_url}} style={styles.Modalposter} />
+                </View>
+                <View style={styles.ModalDataCenter}>
+                  <Text style={[styles.title, {color: '#fff'}]}>
+                    {data.title}{' '}
+                    <Text
+                      style={[
+                        styles.subTitle,
+                        {
+                          fontWeight: '400',
+                          fontSize: verticalScale(12),
+                          color: '#ccc',
+                        },
+                      ]}>
+                      ({data.release_year})
+                    </Text>
+                  </Text>
+                  <Text
+                    style={[
+                      styles.subTitle,
+                      {color: '#ddd'},
+                    ]}>
+                    {data.genre}
+                  </Text>
+                  <View style={styles.RatingSection}>
+                    <Image
+                      source={require('../assets/Icons/star.png')}
+                      style={styles.RatingIcon}
+                    />
+                    <Text
+                      style={[
+                        styles.subTitle,
+                        {color: '#fff', marginLeft: verticalScale(6)},
+                      ]}>
+                      {data.rating}
+                    </Text>
+                  </View>
+                  <Text
+                    style={[
+                      styles.subTitle,
+                      {
+                        color: '#fff',
+                        fontWeight: '600',
+                        marginTop: verticalScale(15),
+                      },
+                    ]}>
+                    Duration:{' '}
+                    <Text style={{fontWeight: '400'}}>{data.duration} min</Text>
+                  </Text>
+                  <Text
+                    style={[
+                      styles.subTitle,
+                      {
+                        color: '#fff',
+                        fontWeight: '600',
+                        marginTop: verticalScale(12),
+                      },
+                    ]}>
+                    Director:{' '}
+                    <Text style={{fontWeight: '400'}}>{data.director}</Text>
+                  </Text>
+                  <Text
+                    style={[
+                      styles.subTitle,
+                      {
+                        color: '#fff',
+                        fontWeight: '600',
+                        marginTop: verticalScale(18),
+                        marginBottom: verticalScale(6),
+                      },
+                    ]}>
+                    Description:
+                  </Text>
+                  <Text
+                    style={[
+                      styles.subTitle,
+                      {
+                        color: '#eee',
+                        fontWeight: '400',
+                        lineHeight: verticalScale(20),
+                        textAlign: 'justify',
+                      },
+                    ]}>
+                    {data.description}
+                  </Text>
+                </View>
+                <TouchableOpacity style={styles.WatchBtn} onPress={()=>{ToastAndroid.show('Enjoy watching!',ToastAndroid.SHORT)}}>
+                  <Text style={{color: '#fff', fontWeight: 'bold'}}>
+                    Watch Now
+                  </Text>
+                </TouchableOpacity>
+              </ScrollView>
+            )}
+          </LinearGradient>
+        </ImageBackground>
+      </Modal>
     </View>
   );
 };
@@ -321,13 +392,19 @@ const styles = StyleSheet.create({
     marginVertical: verticalScale(10),
     alignItems: 'center',
     height: verticalScale(120),
-    width: verticalScale(280),
+    width: verticalScale(265),
   },
   poster: {
     width: verticalScale(80),
     height: verticalScale(110),
     borderRadius: verticalScale(10),
-    resizeMode: 'contain',
+    // resizeMode:'contain',
+  },
+  Modalposter: {
+    width: verticalScale(130),
+    height: verticalScale(180),
+    borderRadius: verticalScale(20),
+    resizeMode:'cover'
   },
   posterContainer: {
     width: verticalScale(80),
@@ -337,15 +414,15 @@ const styles = StyleSheet.create({
   cardContent: {
     marginLeft: verticalScale(15),
     justifyContent: 'flex-start',
-    paddingTop: verticalScale(20),
   },
   title: {
     color: '#fff',
-    fontSize: verticalScale(16),
+    fontSize: verticalScale(15),
+    lineHeight:verticalScale(16)
   },
   subText: {
     color: '#fff',
-    fontSize: verticalScale(15),
+    fontSize: verticalScale(13),
     marginVertical: verticalScale(5),
   },
   RatingIcon: {
@@ -372,73 +449,41 @@ const styles = StyleSheet.create({
     color: '#000',
     fontSize: verticalScale(14),
   },
-  chooseBtn: {
-    padding: 10,
-    marginVertical: 5,
-    backgroundColor: '#ddd',
-    alignItems: 'center',
-    borderRadius: 8,
-    borderWidth: 1,
-    marginTop: verticalScale(10),
-  },
   CrossBtn: {
-    alignSelf: 'flex-end',
-    padding: 10,
+    position: 'absolute',
+    top: verticalScale(15),
+    right: verticalScale(15),
+    zIndex: 100,
+  },
+  crossIcon: {
+    width: verticalScale(28),
+    height: verticalScale(28),
   },
   MainModalContainer: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'center',
   },
-  ModalContainer: {
-    backgroundColor: '#fff',
-    margin: 20,
-    borderRadius: 10,
-    paddingVertical: verticalScale(15),
+  fullScreenBackground: {
+    flex: 1,
+  },
+  gradientOverlay: {
+    flex: 1,
     paddingHorizontal: verticalScale(20),
-    maxHeight: '90%',
+    paddingTop: verticalScale(50),
+  },
+  adminModalContentBox: {
+    backgroundColor: 'rgba(255,255,255,0.97)',
+    borderRadius: 16,
+    marginHorizontal: 0,
+    marginTop: verticalScale(35),
+    padding: verticalScale(16),
+    flex: 1,
   },
   imageArea: {
     alignItems: 'center',
     marginBottom: 20,
   },
-  ModalDataTop: {
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  ModalDataCenter: {
-    paddingHorizontal: 10,
-  },
-  ModalSubTitle: {
-    fontSize: verticalScale(14),
-    fontWeight: '500',
-    color: '#444',
-  },
-  ModalSubTitle2: {
-    fontSize: verticalScale(13),
-    color: '#666',
-    marginVertical: 4,
-  },
-  RatingSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 4,
-  },
-  WatchBtn: {
-    backgroundColor: '#000',
-    padding: 12,
-    marginTop: 20,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  adminScrollContent: {
-    paddingBottom: verticalScale(20),
-  },
-
-  nonAdminScrollContent: {
-    paddingBottom: verticalScale(20),
-  },
-
   section: {
     marginBottom: verticalScale(20),
   },
@@ -448,7 +493,6 @@ const styles = StyleSheet.create({
     marginBottom: verticalScale(8),
     color: '#444',
   },
-
   saveBtn: {
     backgroundColor: '#007BFF',
     paddingVertical: verticalScale(12),
@@ -460,5 +504,44 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '700',
     fontSize: verticalScale(14),
+  },
+  adminScrollContent: {
+    paddingBottom: verticalScale(20),
+  },
+  ModalContent: {
+    paddingBottom: verticalScale(30),
+  },
+  ModalTitle: {
+    fontSize: verticalScale(20),
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: verticalScale(10),
+    alignSelf: 'center',
+  },
+  ModalDataTop: {
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  ModalDataCenter: {
+    paddingHorizontal: 10,
+  },
+  RatingSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: verticalScale(10),
+  },
+  WatchBtn: {
+    backgroundColor: 'rgb(255, 34, 30)',
+    marginTop: verticalScale(15),
+    padding: verticalScale(10),
+    borderRadius: verticalScale(8),
+    alignItems: 'center',
+    alignSelf: 'center',
+    minWidth: 120,
+  },
+  subTitle: {
+    color: '#fff',
+    fontSize: 15,
+    lineHeight:verticalScale(17)
   },
 });

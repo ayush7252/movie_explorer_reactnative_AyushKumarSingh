@@ -58,6 +58,19 @@ const AuthrizationScreen = ({
   };
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
+  // Function to switch login/signup mode and clear errors
+  const switchMode = (newMode: 'login' | 'signup') => {
+    setMode(newMode);
+    setError('');
+    setFieldErrors({});
+    // Optionally clear input fields:
+    // setName('');
+    // setEmail('');
+    // setPassword('');
+    // setConfirmPassword('');
+    // setmobileNumber('');
+  };
+
   const handleLogin = async () => {
     Keyboard.dismiss();
     setFieldErrors({
@@ -107,7 +120,6 @@ const AuthrizationScreen = ({
       const errorMsg = err?.response?.data?.error;
 
       if (errorMsg) {
-    
         setFieldErrors(prev => ({
           ...prev,
           loginError: errorMsg,
@@ -222,8 +234,6 @@ const AuthrizationScreen = ({
               ]}
             />
           </TouchableOpacity>
-          <Text style={styles.title}>Movie Explorer</Text>
-          <View style={{width: 24}} />
         </View>
 
         <View>
@@ -232,23 +242,32 @@ const AuthrizationScreen = ({
             style={styles.logo}
           />
         </View>
-
-        <View
-          style={[
-            styles.tabContainer,
-            isTablet && {marginTop: verticalScale(10)},
-          ]}>
+        <View style={styles.tabButtonContainer}>
           <TouchableOpacity
-            style={[styles.tab, isLogin && styles.activeTab]}
-            onPress={() => setMode('login')}>
-            <Text style={[styles.tabText, isLogin && styles.activeTabText]}>
+            style={[
+              styles.tabButton,
+              isLogin && styles.activeTabButton,
+            ]}
+            onPress={() => switchMode('login')}
+          >
+            <Text style={[
+              styles.tabButtonText,
+              isLogin && styles.activeTabButtonText,
+            ]}>
               Login
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.tab, !isLogin && styles.activeTab]}
-            onPress={() => setMode('signup')}>
-            <Text style={[styles.tabText, !isLogin && styles.activeTabText]}>
+            style={[
+              styles.tabButton,
+              !isLogin && styles.activeTabButton,
+            ]}
+            onPress={() => switchMode('signup')}
+          >
+            <Text style={[
+              styles.tabButtonText,
+              !isLogin && styles.activeTabButtonText,
+            ]}>
               Sign Up
             </Text>
           </TouchableOpacity>
@@ -555,29 +574,36 @@ const styles = StyleSheet.create({
     marginBottom: verticalScale(-20),
     tintColor: '#fff',
   },
-  tabContainer: {
+  tabButtonContainer: {
     flexDirection: 'row',
-    backgroundColor: '#ffffff30',
-    borderRadius: verticalScale(30),
-    overflow: 'hidden',
-    marginTop: verticalScale(20),
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: verticalScale(10),
+    justifyContent: 'center',
     alignItems: 'center',
+    marginTop: verticalScale(10),
+    marginBottom: verticalScale(10),
+    gap: scale(10),
   },
-  tabText: {
+  tabButton: {
+    flex: 1,
+    backgroundColor: '#181818',
+    paddingVertical: verticalScale(12),
+    borderRadius: verticalScale(25),
+    marginHorizontal: scale(20),
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#f56b2a',
+  },
+  activeTabButton: {
+    backgroundColor: '#f56b2a',
+    borderColor: '#f56b2a',
+  },
+  tabButtonText: {
     color: '#fff',
     fontSize: moderateScale(16),
-    lineHeight: moderateScale(18),
-  },
-  activeTab: {
-    backgroundColor: '#fff',
-  },
-  activeTabText: {
-    color: '#000',
     fontWeight: 'bold',
+    lineHeight:verticalScale(17)
+  },
+  activeTabButtonText: {
+    color: '#fff',
   },
   form: {
     flex: 1,

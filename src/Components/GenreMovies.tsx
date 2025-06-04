@@ -62,21 +62,17 @@ const GenreMovies = ({data, page, setPage, handleReload}: GenreMoviesProps) => {
     <View
       style={styles.MainContainer}
       testID={`genre-movies-container-${data}`}>
-      <Text
-        style={{color: '#fff', fontSize: 20, fontWeight: 'bold'}}
-        testID={`genre-movies-title-${data}`}>
-        {data} Movies
-      </Text>
 
       <FlatList
         data={genreMovie}
+        showsVerticalScrollIndicator={false}
         keyExtractor={item => item.id}
         renderItem={({item}) => (
           <MovieCard data={item} testID={`movie-card-${item.id}`} handleReload={handleReload} />
         )}
         testID={`genre-movies-list-${data}`}
         onEndReached={handleLoadMore}
-        onEndReachedThreshold={0.15}
+        onEndReachedThreshold={1}
         contentContainerStyle={{
           paddingBottom: verticalScale(150),
         }}

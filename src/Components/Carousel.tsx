@@ -54,7 +54,6 @@ const Carousel = () => {
     };
   }, [loopedData]);
 
-  // Autoplay effect with pause on modal open
   useEffect(() => {
     if (intervalRef.current) clearInterval(intervalRef.current);
 
@@ -68,7 +67,7 @@ const Carousel = () => {
           animated: true,
         });
       }
-    }, 3000); // 3 seconds per slide
+    }, 3000); 
 
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);

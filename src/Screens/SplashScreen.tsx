@@ -55,8 +55,8 @@ const SplashScreen = ({navigation}) => {
       try {
         const response = await getSubscriptionStatus();
         console.log('Subscription Status:', response.plan_type);
-        const subStatus = "premium"
-        await AsyncStorage.setItem('SubscriptionStatus', subStatus);
+        // const subStatus = "premium"
+        await AsyncStorage.setItem('SubscriptionStatus', response.plan_type);
       } catch (error) {
         ToastAndroid.show('Loading Data', ToastAndroid.SHORT);
       }
@@ -81,9 +81,7 @@ const SplashScreen = ({navigation}) => {
           flex: 1,
         }}>
         <View style={styles.topContainer}>
-          <Text style={[styles.title, isTablet && styles.titleTablet]}>
-            Welcome to Movie Explorer
-          </Text>
+          
           <View style={styles.LogoContainer}>
             <Image
               source={require('../assets/Images/a.png')}
@@ -126,6 +124,7 @@ const styles = StyleSheet.create({
     color: 'white',
     marginBottom: verticalScale(10),
     textAlign: 'center',
+    marginTop:verticalScale(50)
   },
   titleTablet: {
     fontSize: moderateScale(36),
@@ -134,7 +133,7 @@ const styles = StyleSheet.create({
   LogoContainer: {
     height: verticalScale(200),
     width: verticalScale(300),
-    marginTop: verticalScale(60),
+    marginTop: verticalScale(160),
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',

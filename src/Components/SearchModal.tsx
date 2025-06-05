@@ -26,14 +26,12 @@ const SearchModal = ({ data: query = '', onSuggestionPress }: SearchModalProps) 
   const [allMoviesForSuggestions, setAllMoviesForSuggestions] = useState<any[]>([]);
   const lastSelectedSuggestion = useRef<string | null>(null);
   const [inputQuery, setInputQuery] = useState(query);
-  const abortControllerRef = useRef<AbortController | null>(null); // Ref to manage fetch cancellation
+  const abortControllerRef = useRef<AbortController | null>(null);
 
-  // Update inputQuery if parent query changes
   useEffect(() => {
     setInputQuery(query);
   }, [query]);
 
-  // Fetch movies for suggestions dropdown (on mount)
   useEffect(() => {
     const fetchAllMoviesForSuggestions = async () => {
       try {
@@ -46,7 +44,6 @@ const SearchModal = ({ data: query = '', onSuggestionPress }: SearchModalProps) 
     fetchAllMoviesForSuggestions();
   }, []);
 
-  // Handle FuseJS search for suggestions
   useEffect(() => {
     if (
       inputQuery &&
@@ -78,36 +75,33 @@ const SearchModal = ({ data: query = '', onSuggestionPress }: SearchModalProps) 
     }
   }, [inputQuery, allMoviesForSuggestions]);
 
-  // Function to fetch movies with cancellation support
   const fetchMoviesFromAPI = async (searchQuery: string, immediate = false) => {
-  // Cancel any ongoing fetch
-  if (abortControllerRef.current) {
-    abortControllerRef.current.abort();
-  }
-  abortControllerRef.current = new AbortController();
-  const { signal } = abortControllerRef.current;
-
-  setAllMovies([]); // Clear previous movies to avoid showing outdated data
-  setLoading(true); // Show the loader
-
-  try {
-    const response = await fetchMoviesByTitle(searchQuery, signal);
-    if (response) {
-      setAllMovies(response);
-    } else {
-      setAllMovies([]);
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
     }
-  } catch (error) {
-    if (error.name !== 'AbortError') {
-      console.error('API error:', error);
-      setAllMovies([]);
-    }
-  } finally {
-    setLoading(false); // Hide the loader
-  }
-};
+    abortControllerRef.current = new AbortController();
+    const { signal } = abortControllerRef.current;
 
-  // Debounced fetch for typing
+    setAllMovies([]);
+    setLoading(true);
+
+    try {
+      const response = await fetchMoviesByTitle(searchQuery, signal);
+      if (response) {
+        setAllMovies(response);
+      } else {
+        setAllMovies([]);
+      }
+    } catch (error) {
+      if (error.name !== 'AbortError') {
+        console.error('API error:', error);
+        setAllMovies([]);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     const delayDebounce = setTimeout(() => {
       if (inputQuery && inputQuery !== lastSelectedSuggestion.current) {
@@ -120,14 +114,13 @@ const SearchModal = ({ data: query = '', onSuggestionPress }: SearchModalProps) 
     };
   }, [inputQuery]);
 
-  // Handle suggestion press with immediate fetch
   const handleSuggestionPress = (suggestionTitle: string) => {
     lastSelectedSuggestion.current = suggestionTitle;
     setInputQuery(suggestionTitle);
     setShowSuggestions(false);
     if (onSuggestionPress) onSuggestionPress(suggestionTitle);
     Keyboard.dismiss();
-    fetchMoviesFromAPI(suggestionTitle, true); // Fetch immediately
+    fetchMoviesFromAPI(suggestionTitle, true);
   };
 
   const handleReload = () => {
@@ -156,35 +149,47 @@ const SearchModal = ({ data: query = '', onSuggestionPress }: SearchModalProps) 
               <Text style={styles.suggestionText}>{item.title}</Text>
             </TouchableOpacity>
           ))}
-          
         </View>
       )}
       {inputQuery ? (
-        loading ? (
-          <ActivityIndicator size="large" color="#fff" style={{ marginTop: 20 }} />
-        ) : (
-          <View style={{ flex: 1 }}>
-            {allMovies.length > 0 && (
-              <Text style={styles.resultCountText}>
-                {allMovies.length} result{allMovies.length === 1 ? '' : 's'} found
-              </Text>
-            )}
-            <FlatList
-              style={{ flex: 1 }}
-              data={allMovies}
-              keyExtractor={(item) => item.id.toString()}
-              renderItem={({ item }) => (
-                <MovieCard data={item} handleReload={handleReload} />
+        <View style={{ flex: 1 }}>
+          {loading && !showSuggestions ? (
+            <View style={styles.loaderContainer}>
+              <ActivityIndicator size="large" color="#fff" />
+            </View>
+          ) : (
+            <>
+              {allMovies.length > 0 && (
+                <Text style={styles.resultCountText}>
+                  {allMovies.length} result{allMovies.length === 1 ? '' : 's'} found
+                </Text>
               )}
-              ListEmptyComponent={
-                <View style={{ alignItems: 'center' }}>
-                  <Text style={styles.text}>No Data Found for "{inputQuery}"</Text>
-                </View>
-              }
-              keyboardShouldPersistTaps="handled"
-            />
-          </View>
-        )
+              <FlatList
+                style={{ flex: 1 }}
+                data={allMovies}
+                keyExtractor={(item) => item.id.toString()}
+                renderItem={({ item }) => (
+                  <MovieCard data={item} handleReload={handleReload} />
+                )}
+                ListEmptyComponent={
+                  <View style={styles.emptyContainer}>
+                    {loading && showSuggestions ? (
+                      <View style={styles.loaderContainer}>
+                        <ActivityIndicator size="large" color="#fff" />
+                      </View>
+                    ) : (
+                      <View>
+                        <Text style={styles.text}>No Data Found for "{inputQuery}"</Text>
+                      </View>
+                    )}
+                    
+                  </View>
+                }
+                keyboardShouldPersistTaps="handled"
+              />
+            </>
+          )}
+        </View>
       ) : (
         <View style={styles.EnterMovieTitle}>
           <Text style={styles.text}>Enter movie title to search</Text>
@@ -240,6 +245,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: verticalScale(20),
   },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: verticalScale(20),
+  },
   text: {
     fontSize: verticalScale(18),
     fontWeight: '500',
@@ -251,5 +262,11 @@ const styles = StyleSheet.create({
     paddingLeft: verticalScale(8),
     paddingTop: 2,
     paddingBottom: 2,
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: verticalScale(20),
   },
 });
